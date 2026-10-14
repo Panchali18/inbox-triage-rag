@@ -17,15 +17,19 @@ What I did at each step, what I decided, and what I learned.
 - Checked the account: free plan with $119.41 credits and 179 days left. Current spend is about $1.30 a month, mainly FitProof.
 - Created a monthly cost budget, `account-monthly-5usd`. It alerts at 85% and 100% of actual spend, and at 100% of forecast spend.
 - Created this repo.
+- Tested Bedrock: Nova 2 Lite replied in the playground in 2.6 seconds, using 97 input and 415 output tokens. So the account has a working model quota.
+- **Changed the region from eu-west-1 (Ireland) to eu-north-1 (Stockholm).** The account sits inside an AWS project whose region is fixed to Stockholm. The console redirects there, and Unified Settings and Default Region are blocked. Creating a new project doesn't offer a region choice either.
 
 ### Learned
-- S3 Vectors and Bedrock Knowledge Bases are both available in eu-west-1.
+- In Stockholm, S3 Vectors and Titan Text Embeddings V2 are available, and Bedrock Knowledge Bases and Guardrails appear in the console menu. Knowledge Bases with structured data stores aren't available there, but this project doesn't need them.
 - Some free-plan accounts get Bedrock quotas of zero, so a model call has to be tested before building on it.
+- Nova 2 Lite runs with reasoning switched on by default in the playground. That adds output tokens and latency, so I'll turn it off for classification and extraction.
 - Billing pages are global, so the region selector is hidden there.
+- AWS "projects" (a newer, limited-release setup) can lock an account to one region. Check the project page under Additional info before planning around a specific region.
 - Cost Explorer needs about 24 hours to fill in. The Free Tier page shows the credit balance straight away.
 - On the free plan, every service stops when the credits run out, including other live apps on the account. The budget alert is the early warning.
 
 ### Next
-- Test a Bedrock model (Nova Lite) in Ireland and confirm Titan Text Embeddings V2 is available.
-- Test S3 Vectors, Lambda, API Gateway and DynamoDB.
+- Confirm Titan Text Embeddings V2 in the Stockholm model catalog.
+- Test S3 Vectors, Lambda, API Gateway and DynamoDB in eu-north-1.
 - Apply the tagging convention: `Project=inbox-triage-v1`, `Owner=panchali`, `Env=demo`, `DeleteAfter=2027-04-10`.

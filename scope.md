@@ -14,7 +14,8 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 
 | Decision | Choice |
 |---|---|
-| Vector store | Bedrock Knowledge Base on S3 Vectors, eu-west-1 |
+| Region | **eu-north-1 (Stockholm)**. The AWS project is locked to this region, so the brief's eu-west-1 is not available. Data still stays in the EU; the README notes that a real deployment would choose Ireland. |
+| Vector store | Bedrock Knowledge Base on S3 Vectors, eu-north-1 |
 | Models | Nova Lite/Micro (or small Claude); EU cross-region inference profile acceptable, noted in README |
 | Client lookup | DynamoDB table, called as a tool (not RAG) |
 | Queue / email state | DynamoDB table |
