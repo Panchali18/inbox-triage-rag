@@ -29,7 +29,18 @@ What I did at each step, what I decided, and what I learned.
 - Cost Explorer needs about 24 hours to fill in. The Free Tier page shows the credit balance straight away.
 - On the free plan, every service stops when the credits run out, including other live apps on the account. The budget alert is the early warning.
 
+- Step one account checks all passed in eu-north-1. I created and deleted a test resource in each service:
+  - Titan Text Embeddings V2: listed as serverless.
+  - S3 Vectors: created and deleted a vector bucket.
+  - Lambda: ran a hello-world function on Python and arm64.
+  - API Gateway: an HTTP API trigger returned "Hello from Lambda!".
+  - DynamoDB: a test table reached Active, then I deleted it.
+- Tagging convention agreed. Every resource is named with the prefix `inbox-triage-v1-` and carries these tags: `Project=inbox-triage-v1`, `Owner=panchali`, `Env=demo`, `DeleteAfter=2027-04-10`.
+
+### Learned (account checks)
+- Claude models aren't in the Stockholm model catalogue, so Nova is the native option here.
+- A cost allocation tag can only be activated after a resource carries it, so I'll activate `Project` once the first real resource exists.
+
 ### Next
-- Confirm Titan Text Embeddings V2 in the Stockholm model catalog.
-- Test S3 Vectors, Lambda, API Gateway and DynamoDB in eu-north-1.
-- Apply the tagging convention: `Project=inbox-triage-v1`, `Owner=panchali`, `Env=demo`, `DeleteAfter=2027-04-10`.
+- Draft the synthetic knowledge base: firm documents, 20 past replies and the Revenue.ie page selection.
+- Activate `Project` as a cost allocation tag after the first tagged resource exists.
