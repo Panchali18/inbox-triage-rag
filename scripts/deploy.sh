@@ -97,7 +97,7 @@ if [ "$PLAN_ID" = "None" ] || [ -z "$PLAN_ID" ]; then
   KEY_ID=$(aws apigateway create-api-key --region $REGION --name $P-key --enabled --tags "$TAGS_KV" --query id --output text)
   aws apigateway create-usage-plan-key --region $REGION --usage-plan-id $PLAN_ID --key-id $KEY_ID --key-type API_KEY >/dev/null
 fi
-KEY_ID=$(aws apigateway get-api-keys --region $REGION --name-query $P-key --query "items[0].id" --output text)
+KEY_ID=$(aws apigateway get-api-keys --region $REGION --name-query $P-key --query "items[-1].id" --output text)
 KEY_VALUE=$(aws apigateway get-api-key --region $REGION --api-key $KEY_ID --include-value --query value --output text)
 
 echo "6/6  Done"
