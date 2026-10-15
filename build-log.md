@@ -1,6 +1,26 @@
 # Build log
 
-What I did at each step, what I decided, and what I learned.
+What I built at each step, the decisions I made and why, and what I learned along the way.
+
+---
+
+## Decisions at a glance
+
+| Area | Choice | Why | Alternative I didn't choose |
+|---|---|---|---|
+| Region | eu-north-1 (Stockholm) | The AWS project is locked to Stockholm. Data still stays in the EU, which is what GDPR cares about. | eu-west-1 (Ireland): blocked by the project settings |
+| Vector store | Amazon S3 Vectors | Pay-per-use storage and queries, so it costs pennies at this scale | OpenSearch Serverless: a minimum always-on charge that would use up the free credits in weeks |
+| Embeddings | Titan Text Embeddings V2, float, 1024 dimensions | Available in Stockholm and supported by S3 Vectors. The default size gives the best accuracy. | Binary embeddings: cheaper storage, but less precise, and storage cost is already negligible |
+| Parsing | Bedrock default parser | Free, and enough for plain-text Markdown | Foundation-model parser: charges per page, and only needed for images and complex layouts |
+| Chunking | Default (about 300 tokens) | Most files are short, so they stay whole. The fee guide and terms split into a few chunks. | Hierarchical or semantic chunking: worth testing in v2 if retrieval scores are weak |
+| Main model | Amazon Nova 2 Lite | Native in Stockholm, cheap and fast. Claude isn't in the Stockholm catalogue. | A small Claude model via EU cross-region inference: kept as a backup |
+| Client lookup | DynamoDB table, called as a tool | Structured facts (who is the client, what's outstanding) need exact lookups, not similarity search. DynamoDB also appears in AI job posts. | A JSON file in S3: simpler but less realistic |
+| Front-end access | API Gateway with an API key and throttling | Enough for a demo, with less setup | Cognito login: more realistic, but adds a week-2 dependency |
+| Budget | $5 a month alert on the whole account | FitProof costs about $1.30 a month, so $5 gives an early warning | $10: too late a warning on a $119 credit balance |
+| Demo lifetime | Live until 10 April 2027 | The LinkedIn post links to a working demo. Idle cost is close to zero. | Delete at the 6 November close date: the demo link would break days after posting |
+| Firm name | Nore Valley Accountants (fictional) | First idea, "Brennan & Kerr", was too close to a real firm (RBK) | |
+| Revenue content | 9 pages saved as text, with CC BY 4.0 attribution | Revenue's licence allows reuse with credit, but not its logos | Storing the PDFs: they contain the Revenue logo |
+| Expenses guidance | Left out | Only available in long technical manuals. Expense questions are advice, so they go to an accountant. | |
 
 ---
 
@@ -8,83 +28,98 @@ What I did at each step, what I decided, and what I learned.
 
 ### Done
 - Wrote the v1 scope as 17 user stories with acceptance criteria, assumptions and open questions ([scope.md](scope.md)).
-- Decided:
-  - DynamoDB for the client lookup.
-  - An API key for front-end access.
-  - EU cross-region inference is acceptable.
-  - 20 past replies instead of 50.
-  - The demo stays live until 10 April 2027.
 - Checked the account: free plan with $119.41 credits and 179 days left. Current spend is about $1.30 a month, mainly FitProof.
 - Created a monthly cost budget, `account-monthly-5usd`. It alerts at 85% and 100% of actual spend, and at 100% of forecast spend.
-- Created this repo.
-- Tested Bedrock: Nova 2 Lite replied in the playground in 2.6 seconds, using 97 input and 415 output tokens. So the account has a working model quota.
-- **Changed the region from eu-west-1 (Ireland) to eu-north-1 (Stockholm).** The account sits inside an AWS project whose region is fixed to Stockholm. The console redirects there, and Unified Settings and Default Region are blocked. Creating a new project doesn't offer a region choice either.
-
-### Learned
-- In Stockholm, S3 Vectors and Titan Text Embeddings V2 are available, and Bedrock Knowledge Bases and Guardrails appear in the console menu. Knowledge Bases with structured data stores aren't available there, but this project doesn't need them.
-- Some free-plan accounts get Bedrock quotas of zero, so a model call has to be tested before building on it.
-- Nova 2 Lite runs with reasoning switched on by default in the playground. That adds output tokens and latency, so I'll turn it off for classification and extraction.
-- Billing pages are global, so the region selector is hidden there.
-- AWS "projects" (a newer, limited-release setup) can lock an account to one region. Check the project page under Additional info before planning around a specific region.
-- Cost Explorer needs about 24 hours to fill in. The Free Tier page shows the credit balance straight away.
-- On the free plan, every service stops when the credits run out, including other live apps on the account. The budget alert is the early warning.
-
-- Step one account checks all passed in eu-north-1. I created and deleted a test resource in each service:
+- Tested Bedrock: Nova 2 Lite replied in the playground in 2.6 seconds, using 97 input and 415 output tokens.
+- Ran the account checks in eu-north-1. I created a test resource in each service, then deleted it:
   - Titan Text Embeddings V2: listed as serverless.
   - S3 Vectors: created and deleted a vector bucket.
   - Lambda: ran a hello-world function on Python and arm64.
   - API Gateway: an HTTP API trigger returned "Hello from Lambda!".
   - DynamoDB: a test table reached Active, then I deleted it.
-- Tagging convention agreed. Every resource is named with the prefix `inbox-triage-v1-` and carries these tags: `Project=inbox-triage-v1`, `Owner=panchali`, `Env=demo`, `DeleteAfter=2027-04-10`.
+- Agreed a tagging convention. Every resource is named with the prefix `inbox-triage-v1-` and carries these tags:
+  - `Project = inbox-triage-v1`: find all project resources and separate their costs.
+  - `Owner = panchali`: who is responsible.
+  - `Env = demo`: keeps demo resources apart from the live FitProof app.
+  - `DeleteAfter = 2027-04-10`: the clean-up date, so nothing is forgotten.
+- Created this repo.
 
-### Learned (account checks)
-- Claude models aren't in the Stockholm model catalogue, so Nova is the native option here.
-- A cost allocation tag can only be activated after a resource carries it, so I'll activate `Project` once the first real resource exists.
+### Decided
+- **Changed the region from Ireland to Stockholm.** The account sits inside an AWS "project" whose region is fixed to Stockholm. The console redirects there, and Unified Settings and Default Region are blocked. Creating a new project doesn't offer a region choice either. Every service the build needs is available in Stockholm, and data stays in the EU.
+
+### Learned
+- Test a model call before building on Bedrock. Some free-plan accounts get model quotas of zero.
+- Nova 2 Lite has reasoning switched on by default in the playground. That adds output tokens and latency, so I'll turn it off for classification and extraction.
+- Billing pages are global, so the region selector is hidden there.
+- AWS projects, a newer limited-release setup, can lock an account to one region. Check the project's region before planning around one.
+- Cost Explorer needs about 24 hours to fill in. The Free Tier page shows the credit balance straight away.
+- On the free plan, every service stops when the credits run out, including other live apps on the account. The budget alert is the early warning.
+- Claude models aren't in the Stockholm model catalogue. Nova is the native option there.
+- Hosting in another EU region doesn't change GDPR for an Irish firm, because data stays within the EU. A real deployment would still need a data processing agreement, a privacy notice and a DPIA, and should check client contracts for any Ireland-only requirement.
 
 ---
 
-## Day 2: Thursday 15 October 2026: synthetic knowledge base
+## Day 2: Thursday 15 October 2026: synthetic data and the Knowledge Base
 
-### Done
-- Named the fictional firm **Nore Valley Accountants** (Kilkenny). I chose it over my first idea, "Brennan & Kerr", because a search found a real Irish firm with a similar name (RBK, Russell Brennan Keane). All staff names are fictional too.
-- Wrote four firm documents in `data/kb/firm/`: services and fees, engagement terms, onboarding and records checklists, and the FAQ.
-- Designed the documents so they can be tested:
-  - Checklist item codes (such as `ST-BANK`) let the system tell clients exactly what's missing.
-  - The no-advice and partner-only ID check rules are written into the firm's own terms, so drafts can quote the policy, not just rely on the guardrail.
-  - The FAQ gives no Revenue deadlines, so deadline questions must be answered from the Revenue pages. This tests retrieval across both sources.
-  - The €120 partner consultation answers OQ-4: an unknown sender asking for advice is offered a paid consultation, and a partner gets a briefing note.
+### Done: firm documents
+- Wrote four documents for the fictional firm in `data/kb/firm/`:
+  - services and fees
+  - engagement terms
+  - onboarding and annual records checklists
+  - FAQ
+- Designed them so the pipeline can be tested:
+  - **Checklist item codes** (such as `ST-BANK`) let the system match a file to a checklist item and tell the client exactly what's still missing.
+  - **The no-advice and partner-only identity check rules are written into the firm's own terms.** Drafts can quote the firm's policy when declining advice, as a second layer behind the guardrail.
+  - **The FAQ gives no Revenue deadlines.** Deadline questions must be answered from the Revenue pages, which tests retrieval across both sources.
+  - **A €120 partner consultation** answers OQ-4: an unknown sender asking for advice is offered a paid consultation, and a partner gets a briefing note.
 
+### Done: past replies
 - Wrote 20 synthetic past replies in `data/kb/past-replies/`:
   - 6 prospect quotes and onboarding
   - 8 admin answers
   - 4 document logs and chases
   - 1 Revenue letter acknowledgement
   - 1 advice question redirected to a consultation
-- Every fee, deadline and promise in the replies comes from the four firm documents, so the fact check has a consistent source of truth. No reply gives tax advice or states a Revenue deadline.
+- Every fee, deadline and promise in the replies comes from the four firm documents, so the fact check has one consistent source of truth. No reply gives tax advice or states a Revenue deadline.
 
-- Checked Revenue's reuse terms. The Public Sector Information Licence allows reuse under the CC BY 4.0 standard, on these conditions:
-  - Credit Revenue with the exact attribution statement.
-  - Use no logos.
-  - Don't imply Revenue endorses the project.
-  - Store no personal information.
+### Done: Revenue guidance
+- Checked Revenue's reuse terms. Its Public Sector Information Licence allows reuse under the CC BY 4.0 standard, on these conditions:
+  - credit Revenue with its exact attribution statement
+  - use no logos
+  - don't imply Revenue endorses the project
+  - store no personal information
+- Added these to the scope (assumption A4). Also added a rule: if no source answers a question, the draft says so and points to revenue.ie or offers a call. It never guesses. Any Revenue fact in a draft cites its page and save date.
+- Saved 9 revenue.ie pages as text in `data/kb/revenue/`. They cover self-assessment deadlines, preliminary tax, registration, VAT thresholds and Corporation Tax. Each file carries the attribution, the source URL and the date saved. I compared each file word by word against the PDF I'd saved.
 
-  I added these to the scope (assumption A4), along with a rule: if no source answers a question, the draft says so and never guesses.
-- Saved 9 revenue.ie pages as text in `data/kb/revenue/`. They cover self-assessment deadlines, preliminary tax, registration, VAT thresholds and Corporation Tax. Each file carries the attribution, the source URL and the date saved. I compared each file word by word with the PDF I'd saved.
-- Left out allowable expenses on purpose, because Revenue covers them only in long technical manuals and expense questions go to an accountant.
+### Done: client table
+- Created 15 fictional clients in `data/clients/clients.json`: 13 sole traders and 2 companies.
+  - Names reflect a realistic mix of people in Ireland, about half Irish and half from other backgrounds. I renamed 10 people in the past replies to match, so replies and client records stay consistent.
+  - Six clients have outstanding documents, to test the documents step. One is mid-onboarding, to test that the system never says identity is verified.
+  - Emails use the reserved `example.com` domain.
+
+### Done: AWS
+- Created the S3 bucket `inbox-triage-v1-kb-docs-pd` (private, tagged) and uploaded 33 files: 4 firm documents, 20 past replies and 9 Revenue pages. I removed the Revenue folder README so the knowledge base doesn't treat it as guidance.
+- Created the Knowledge Base `inbox-triage-v1-kb` with these settings:
+  - data source `inbox-triage-v1-kb-docs`
+  - Titan Text Embeddings V2
+  - S3 Vectors, quick create
+  - default parsing and chunking
+  - deletion policy DELETE
+- **First sync: in progress.**
+
+### Decided
+- **Global bucket namespace,** not the newer account-regional namespace, because I couldn't confirm that Bedrock Knowledge Bases support the new option yet.
+- **Cost allocation tags aren't available on the free plan.** Cost per email will be calculated from the token counts logged by Lambda (US-14). That's more precise than tag-based billing anyway.
 
 ### Learned
 - Check that a fictional company name doesn't match a real business before publishing it.
 - Synthetic data needs its own consistency check. One reply was dated after the deadline it asked the client to meet, and I had to correct it.
-- Public sector content isn't automatically free to reuse. Check the licence first. Revenue's licence covers the text but not its logo, so I store the text only, not the PDFs.
+- Synthetic clients should reflect the real customer base, not a stereotype.
+- Public sector content isn't automatically free to reuse. Check the licence first. Revenue's licence covers the text but not its logo.
 - An AI web-reading tool can return summaries rather than exact text. For a knowledge base, save the source yourself and check the copy word by word.
-
-- Created 15 fictional clients in `data/clients/clients.json`: 13 sole traders and 2 companies. Their names reflect a realistic mix of people in Ireland, with Irish, Polish, Lithuanian, Romanian, Spanish, Indian, Chinese, Brazilian, Nigerian and Ukrainian names. I renamed 10 people in the past replies to match, so the replies and the client table stay consistent. Six clients have outstanding documents, to test the documents step.
-- Emails use the reserved `example.com` domain, so no real person can be emailed by mistake.
-
-### Learned (client data)
-- Synthetic data should reflect the real customer base. A demo where every client has a stereotypically Irish name wouldn't match a practice in Ireland today.
-- Use reserved domains such as example.com for fake email addresses.
+- The console's "Quick create" text says it creates OpenSearch Serverless, even after S3 Vectors is selected in the dropdown below. Always confirm the vector store on the review page before creating.
+- RAG and lookup do different jobs. RAG finds relevant passages in documents. Lookup returns exact facts about a client. Mixing them up leads to wrong answers about who someone is or what they owe.
 
 ### Next
-- Create the S3 bucket and Knowledge Base, and upload the documents. Don't upload the README files.
-- Activate `Project` as a cost allocation tag after the first tagged resource exists.
+- Confirm the sync completed, and test retrieval in the console with a few questions.
+- Load the client table into DynamoDB.
