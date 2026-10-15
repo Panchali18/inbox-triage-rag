@@ -41,6 +41,23 @@ What I did at each step, what I decided, and what I learned.
 - Claude models aren't in the Stockholm model catalogue, so Nova is the native option here.
 - A cost allocation tag can only be activated after a resource carries it, so I'll activate `Project` once the first real resource exists.
 
+---
+
+## Day 2: Thursday 15 October 2026: synthetic knowledge base
+
+### Done
+- Named the fictional firm **Nore Valley Accountants** (Kilkenny). I chose it over my first idea, "Brennan & Kerr", because a search found a real Irish firm with a similar name (RBK, Russell Brennan Keane). All staff names are fictional too.
+- Wrote four firm documents in `data/kb/firm/`: services and fees, engagement terms, onboarding and records checklists, and the FAQ.
+- Designed the documents so they can be tested:
+  - Checklist item codes (such as `ST-BANK`) let the system tell clients exactly what's missing.
+  - The no-advice and partner-only ID check rules are written into the firm's own terms, so drafts can quote the policy, not just rely on the guardrail.
+  - The FAQ gives no Revenue deadlines, so deadline questions must be answered from the Revenue pages. This tests retrieval across both sources.
+  - The €120 partner consultation answers OQ-4: an unknown sender asking for advice is offered a paid consultation, and a partner gets a briefing note.
+
+### Learned
+- Check that a fictional company name doesn't match a real business before publishing it.
+
 ### Next
-- Draft the synthetic knowledge base: firm documents, 20 past replies and the Revenue.ie page selection.
+- Write 20 synthetic past replies.
+- Select and save the Revenue.ie pages.
 - Activate `Project` as a cost allocation tag after the first tagged resource exists.

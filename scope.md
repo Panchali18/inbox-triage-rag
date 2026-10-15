@@ -172,7 +172,7 @@ As the builder, I want costs capped and resources tagged so that the project doe
 - **OQ-1 Targets.** What is the classification accuracy target (I'd suggest at least 90%)? And should advice detection be held to 100% recall, like urgent items? I'd recommend yes, because one missed advice question breaks the main design rule.
 - **OQ-2 Low confidence.** Should a low-confidence email go to `needs_human_triage` (my recommendation) or be forced into one of the six types? If routing, what threshold?
 - **OQ-3 Multi-intent emails.** For example, documents sent plus an advice question. Is "primary type + flags, and an advice flag always creates a briefing note" right?
-- **OQ-4 Unknown sender asking for advice.** Should the briefing note go to a default partner, or should a polite prospect reply offer a consultation?
+- ~~**OQ-4 Unknown sender asking for advice.**~~ **Decided:** reply offering the €120 partner consultation (as listed in the fee guide), and send a briefing note to a partner.
 - ~~**OQ-5 Demo lifetime.**~~ **Decided:** the demo stays live until 10 April 2027 (free-plan end), and resources are tagged `DeleteAfter = 2027-04-10`. The build itself still closes on 6 November 2026.
 - **OQ-6 Fact-check method.** Should the check be a second model call (simpler), or rule-based extraction of numbers and dates compared against sources (cheaper and more predictable)? Possibly both.
 - ~~**OQ-7 Past replies.**~~ **Decided:** 20 synthetic past replies (down from about 50).
