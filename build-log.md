@@ -246,7 +246,34 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - Test data must sound like real senders. Phrases that label the email ("not a client yet") inflate the scores.
 - Looking at real outputs on screen catches problems that aggregate metrics don't. The evaluation passed these emails on type, but the routing and the note were wrong.
 
+- **Evaluation run 3** (`eval/run-3-routing.md`): routing accuracy 100% and classification 92%. One email failed because Bedrock throttled the request. Fixed with adaptive retries and backoff, plus slower pacing in the evaluation script.
+- **Fact check:** figures the sender stated (such as "turnover around €600k") no longer count as unsupported.
+- **Bedrock Guardrail created and connected** (`inbox-triage-v1-guardrail`):
+  - **Denied topic "Personal tax advice"** on output.
+  - **PII masking:** card numbers, IBANs, passwords, and a custom Irish PPSN regex.
+  - **Applied with ApplyGuardrail to the finished draft only,** not to the incoming email or to fixed templates.
+- **First guardrail test (T05, Mateus):** blocked. The model had written "you will need to register for Income Tax", again, despite the prompt rule.
+- **Evaluation runs 4 and 5** (`eval/run-4-5-guardrail.md`). Run 4 blocked 4 drafts (T01, T05, T11, T15). Reading them showed:
+  - **T05:** correct, personal advice.
+  - **T11:** useful, the deadline was given with the **wrong year**, 2025 instead of 2026.
+  - **T15:** borderline but fair, a general rule applied to "you".
+  - **T01:** a clean quote, a **false positive**.
+
+  After tuning the guardrail's definition and sample phrases, adding a third-person attribution rule for Revenue facts, and adding year checking to the fact check, run 5 blocked only **T05 and T15**. It also kept routing, urgent and advice at 100%, and reached 100% retrieval for drafted replies.
+
+### Decided (guardrail)
+- **Screen the output, not the input.** Screening incoming emails would block exactly the advice questions we need to route to accountants.
+- **Block advice, mask PII.** A blocked draft is kept for audit and never shown as a draft. A masked draft is kept with placeholders.
+- **Accept a small over-block rate.** One borderline block in 22 drafts means one manual reply, which is a far smaller cost than advice reaching a client.
+
+### Learned (guardrail)
+- **Prompts are instructions, not guarantees.** The model broke the "no advice" rule twice and the "no price arithmetic" rule three times. Enforcement has to sit outside the prompt: in code, in the fact check and in the guardrail.
+- **Measure a guardrail's false positives, not just its catches.** The first version blocked a perfect quote. Reading every blocked draft was the only way to tell good blocks from bad ones.
+- **Sample phrases shape the topic.** One example that sounded like normal business language ("as a sole trader you must register…") pulled ordinary quotes into the blocked topic.
+- **Blocks can reveal other bugs.** The T11 block exposed a wrong year that the fact check had missed, because it compared dates without years.
+- **Throttling is a real production concern,** even at demo scale. New accounts have low model quotas, so retries with backoff are needed from day one.
+
 ### Next
-- Update the Lambda, reset the demo, and re-run the evaluation (run 3) with routing accuracy.
-- Finish the secure Lovable version (key server-side) and rotate the API key.
-- Add the Bedrock Guardrail.
+- Update the Lambda with the latest code (year check, attribution rule) and run a quick in-app check.
+- Finish the secure Lovable version (key server-side) when credits reset, rotate the API key, and fix the small front-end items: checklist names, advice banner wording.
+- RAG vs prompt-stuffing comparison (US-16), README results section, screen recording, LinkedIn post.

@@ -15,9 +15,9 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 | 1 | 40 synthetic test emails with expected results | ✅ Done (15 Oct) |
 | 2 | Lambda pipeline and API | ✅ Deployed (15 Oct) |
 | 2 | Lovable front end, first version (queue, detail, approve/edit/reject) | ✅ Built (15 Oct) |
-| 2 | Routing rules, mailbox views, review-screen redesign (US-18 to US-20) | ⏳ Next |
-| 2 | Bedrock Guardrail | ⏳ Not started |
-| 3 | Evaluation | ✅ Runs 1 and 2 done (15 Oct). Run 3 started, results not yet recorded. |
+| 2 | Routing rules, mailbox views, review-screen redesign (US-18 to US-20) | ✅ Done (15 Oct). Secure Lovable version pending credits. |
+| 2 | Bedrock Guardrail (denied topic, PII masking) | ✅ Done and tuned (15 Oct) |
+| 3 | Evaluation | ✅ Runs 1–5 done (15 Oct) |
 | 3 | RAG vs prompt-stuffing comparison, README, recording, post | ⏳ Not started |
 
 ## Personas
@@ -128,7 +128,7 @@ As a triage reviewer, I want unsupported facts flagged so that I never send an i
 
 **US-11 Guardrails**
 As the practice, I want guardrails on client drafts so that the AI doesn't give advice or leak personal data.
-- AC1: A Bedrock Guardrail with a denied topic for tax advice is applied to client-facing drafts.
+- AC1: A Bedrock Guardrail with a denied topic for personal tax advice is applied to client-facing drafts (output only, via ApplyGuardrail). Fixed templates are exempt.
 - AC2: PII filters mask PPSNs, IBANs and card numbers in drafts and logs.
 - AC3: A guardrail block is shown in the queue as `blocked by guardrail`, with the reason.
 

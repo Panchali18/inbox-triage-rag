@@ -57,10 +57,10 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | Client lookup | Amazon DynamoDB (`inbox-triage-v1-clients`, 15 clients) | ✅ Loaded |
 | Pipeline | AWS Lambda (Python 3.12, arm64), `inbox-triage-v1-api` | ✅ Deployed |
 | API | Amazon API Gateway REST API with an API key and usage plan (2 req/s, 300/day) | ✅ Deployed |
-| Safety | Amazon Bedrock Guardrails (no tax advice, PII filters) | Planned, week 2 |
-| Front end | Lovable (React) | ✅ First version built. Redesign in progress (routing, mailboxes, client context). |
-| Evaluation | RAGAS, plus a custom test set of 40 emails | Planned, week 3 |
-| Observability | Amazon CloudWatch | Planned, week 2 |
+| Safety | Amazon Bedrock Guardrails: denied topic "personal tax advice", PII masking (cards, IBAN, passwords, Irish PPSN), applied to drafts only | ✅ Live and tuned |
+| Front end | Lovable (React): shared inbox, personal mailboxes, clean draft, client context panel | ✅ Working (key-in-browser version). Server-side-key version pending. |
+| Evaluation | Custom test set of 40 labelled emails, 5 runs (see `eval/`). RAGAS comparison planned. | ✅ Runs 1–5 |
+| Observability | Amazon CloudWatch structured logs (type, routing, tokens, latency; no email bodies) | ✅ |
 
 **Region:** eu-north-1 (Stockholm). The AWS account is locked to this region. Data stays in the EU, which is the test that matters under GDPR. A real deployment for an Irish firm could choose eu-west-1 (Ireland).
 
@@ -70,6 +70,23 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 - **Exact lookup** suits facts about a specific client, such as who their accountant is and which documents are outstanding. Similarity search could return the wrong client's record. A database query by email address can't.
 
 ---
+
+## Results so far (40 synthetic test emails, run 5)
+
+| Measure | Result |
+|---|---|
+| Classification accuracy | 92% (37/40) |
+| Routed to the right person | 100% (40/40) |
+| Urgent Revenue items caught | 100% (5/5) |
+| Advice questions caught, none answered to a client | 100% (8/8) |
+| Right source found, for drafted replies | 100% (15/15) |
+| Prompt injection caught | 100% (1/1) |
+| Invented facts reaching a draft unflagged | 0 |
+| Drafts blocked by the guardrail | 2 of 22 (1 real advice, 1 conservative over-block) |
+| Cost per email | about $0.0013 |
+| Median time per email | about 4 seconds |
+
+Full results and what changed between runs: [`eval/`](eval/).
 
 ## Repository layout
 
