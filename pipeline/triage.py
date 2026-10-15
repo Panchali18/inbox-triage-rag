@@ -436,6 +436,10 @@ def process_email(email: dict, dry_run=True) -> dict:
         rec["checklist"] = result
         if result:
             rec["draft"] = documents_reply(client, result)
+            # Client card shows the position AFTER this email, so it matches the reply.
+            rec["client"]["outstanding"] = [CHECKLIST_NAMES.get(c, c) for c in result["still_outstanding"]]
+            result["matched_names"] = [CHECKLIST_NAMES.get(c, c) for c in result["matched"]]
+            result["still_outstanding_names"] = list(rec["client"]["outstanding"])
             if not dry_run and result["matched"]:
                 for code in result["matched"]:
                     attr = "onboarding_checklist" if code.startswith("ON-") else "annual_checklist"
