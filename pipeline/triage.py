@@ -278,7 +278,10 @@ Rules:
 3. Never give tax advice or say what the sender personally should do about their tax.
 4. Never say that identity, ID or anti-money-laundering checks are complete or verified.
 5. If the sources do not answer the question, say so plainly and either offer a call or point to revenue.ie.
-6. If you quote Revenue guidance, say it is from revenue.ie and suggest checking revenue.ie for the current position.
+6. If you quote Revenue guidance, attribute it in the third person ("Revenue's guidance says registration is
+   obligatory when turnover exceeds ...", "Revenue publishes the deadline as ..."). Never apply it to the sender
+   ("you must", "you are obliged", "your deadline is", "you will need to register"). Copy dates and YEARS exactly
+   as written in the source. Suggest checking revenue.ie for the current position.
 7. Plain, warm, professional Irish business English. Short paragraphs. No markdown headings.
 8. Sign off as "Sinéad Kehoe, Practice Manager, Nore Valley Accountants".
 9. Sources from past-replies/ are examples of tone and structure ONLY. Never copy their names, days, times or
@@ -383,8 +386,9 @@ MONTHS = "january|february|march|april|may|june|july|august|september|october|no
 FACT_PATTERNS = [
     re.compile(r"€\s?\d[\d,]*(?:\.\d+)?"),
     re.compile(r"\b\d+(?:\.\d+)?\s?%"),
-    re.compile(rf"\b\d{{1,2}}(?:st|nd|rd|th)?\s+(?:{MONTHS})\b", re.I),
-    re.compile(rf"\b(?:{MONTHS})\s+\d{{1,2}}\b", re.I),
+    re.compile(rf"\b\d{{1,2}}(?:st|nd|rd|th)?\s+(?:{MONTHS})(?:,?\s+20\d\d)?\b", re.I),   # year checked too
+    re.compile(rf"\b(?:{MONTHS})\s+\d{{1,2}}(?:,?\s+20\d\d)?\b", re.I),
+    re.compile(rf"\b(?:{MONTHS})\s+20\d\d\b", re.I),
     re.compile(r"\b\d+\s+(?:working\s+)?days\b", re.I),
     re.compile(r"\b\d+-minute\b", re.I),
 ]
@@ -421,7 +425,10 @@ def fact_check(draft: str, passages, client, email=None) -> dict:
                 calculated.append(f)
             else:
                 unsupported.append(f)
-    return {"supported": sorted(supported), "calculated": sorted(calculated), "unsupported": sorted(unsupported)}
+    def dedupe(items):  # "October 2025" is already covered by "31 October 2025"
+        items = set(items)
+        return sorted(i for i in items if not any(i != j and i in j for j in items))
+    return {"supported": dedupe(supported), "calculated": dedupe(calculated), "unsupported": dedupe(unsupported)}
 
 
 # ---------------------------------------------------------------- orchestration
