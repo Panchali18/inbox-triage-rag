@@ -31,21 +31,24 @@ def expected_assignee(exp):
         return acc or PRACTICE_MANAGER
     return acc or PARTNER_ON_DUTY
 
+args = sys.argv[1:]
+MODE = "stuffing" if "--stuffing" in args else "rag"
+args = [a for a in args if a != "--stuffing"]
 emails = json.loads((ROOT / "data/test-emails/test_emails.json").read_text(encoding="utf-8"))
-if len(sys.argv) > 1:
-    emails = [e for e in emails if e["id"] in sys.argv[1:]]
+if args:
+    emails = [e for e in emails if e["id"] in args]
 
 results = []
 for e in emails:
     try:
-        r = process_email(e, dry_run=True)
+        r = process_email(e, dry_run=True, mode=MODE)
     except Exception as ex:  # keep going, record the failure
         r = {"error": repr(ex)}
     results.append({"id": e["id"], "expected": e["expected"], "result": r})
     rr = r.get("classification", {})
     print(f"{e['id']}  expected {e['expected']['type']:<18} got {rr.get('type','ERROR'):<18} "
           f"{'OK' if rr.get('type') == e['expected']['type'] else '--'}")
-    time.sleep(1.5)  # stay under the account's Bedrock request quota
+    time.sleep(1.5 if MODE == "rag" else 4)  # stay under the account's Bedrock quotas (stuffing sends ~10k tokens/call)
 
 
 def pct(a, b):
@@ -97,7 +100,7 @@ misclassified = [f"| {x['id']} | {x['expected']['type']} | {x['result']['classif
                  f"{x['result']['classification'].get('reason','')} |" for x in ok if x not in cls_ok]
 report = f"""# Evaluation report
 
-Model: `{MODEL_ID}`. Emails run: {len(results)} ({len(results) - len(ok)} errors). Generated {time.strftime('%Y-%m-%d %H:%M')}.
+Mode: **{MODE}**. Model: `{MODEL_ID}`. Emails run: {len(results)} ({len(results) - len(ok)} errors). Generated {time.strftime('%Y-%m-%d %H:%M')}.
 
 | Metric | Result | Target |
 |---|---|---|
@@ -151,6 +154,6 @@ Costs use approximate Nova 2 Lite prices ($0.30 input and $2.50 output per milli
 """
 out = ROOT / "eval"
 (out / "results").mkdir(parents=True, exist_ok=True)
-(out / "results" / "latest.json").write_text(json.dumps(results, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
-(out / "report.md").write_text(report, encoding="utf-8")
+(out / "results" / ("latest.json" if MODE == "rag" else "stuffing.json")).write_text(json.dumps(results, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+(out / ("report.md" if MODE == "rag" else "report-stuffing.md")).write_text(report, encoding="utf-8")
 print("\n" + report)

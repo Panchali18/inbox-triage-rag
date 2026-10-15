@@ -238,6 +238,26 @@ def retrieve(email, cls, k=TOP_K):
     return out
 
 
+_ALL_DOCS = None
+
+
+def all_documents():
+    """Prompt-stuffing baseline (US-16): every knowledge-base document, in a fixed order."""
+    global _ALL_DOCS
+    if _ALL_DOCS is None:
+        from pathlib import Path
+        root = Path(__file__).resolve().parent.parent / "kb-upload"
+        files = sorted(root.glob("*/*.md"))
+        _ALL_DOCS = []
+        for i, f in enumerate(files, 1):
+            meta_file = f.with_name(f.name + ".metadata.json")
+            meta = json.loads(meta_file.read_text(encoding="utf-8"))["metadataAttributes"] if meta_file.exists() else {}
+            _ALL_DOCS.append({"ref": f"S{i}", "source": f"{f.parent.name}/{f.name}", "score": 1.0,
+                              "text": f.read_text(encoding="utf-8"), "url": meta.get("source_url"),
+                              "saved_on": meta.get("saved_on")})
+    return [dict(d) for d in _ALL_DOCS]
+
+
 def sources_block(passages):
     lines = []
     for p in passages:
@@ -432,8 +452,9 @@ def fact_check(draft: str, passages, client, email=None) -> dict:
 
 
 # ---------------------------------------------------------------- orchestration
-def process_email(email: dict, dry_run=True) -> dict:
-    """Run the full pipeline on one email. dry_run=True never writes to DynamoDB."""
+def process_email(email: dict, dry_run=True, mode="rag") -> dict:
+    """Run the full pipeline on one email. dry_run=True never writes to DynamoDB.
+    mode="rag" retrieves the top 5 passages; mode="stuffing" puts every document in the prompt (baseline)."""
     t0, usage = time.time(), Usage()
     rec = {"email_id": email.get("id") or str(uuid.uuid4()), "received_at": email.get("received_at"),
            "from_email": email["from_email"], "from_name": email.get("from_name"),
@@ -454,7 +475,13 @@ def process_email(email: dict, dry_run=True) -> dict:
     rec["flags"], rec["urgency"] = flags, cls.get("urgency", "normal")
     rec["assigned_to"], rec["routing_reason"] = route(t, flags, client)
 
-    passages = [] if t == "spam_or_supplier" else retrieve(email, cls)
+    if t == "spam_or_supplier":
+        passages = []
+    elif mode == "stuffing":
+        passages = all_documents()
+    else:
+        passages = retrieve(email, cls)
+    rec["mode"] = mode
     rec["retrieved"] = [{**{k: p[k] for k in ("ref", "source", "score", "url")}, "snippet": p["text"][:400]}
                         for p in passages]
     rec["draft"] = rec["briefing_note"] = rec["checklist"] = None
