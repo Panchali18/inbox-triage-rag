@@ -45,7 +45,7 @@ for e in emails:
     rr = r.get("classification", {})
     print(f"{e['id']}  expected {e['expected']['type']:<18} got {rr.get('type','ERROR'):<18} "
           f"{'OK' if rr.get('type') == e['expected']['type'] else '--'}")
-    time.sleep(0.5)  # be gentle with quotas
+    time.sleep(1.5)  # stay under the account's Bedrock request quota
 
 
 def pct(a, b):

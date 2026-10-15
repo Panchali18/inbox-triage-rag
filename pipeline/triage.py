@@ -19,6 +19,7 @@ import time
 import uuid
 
 import boto3
+from botocore.config import Config
 
 # ---------------------------------------------------------------- config
 REGION = os.environ.get("AWS_REGION_NAME", "eu-north-1")
@@ -54,8 +55,10 @@ CHECKLIST_NAMES = {
     "LC-ASSET": "Fixed asset purchases and disposals", "LC-DIRINFO": "Confirmation of current directors and shareholders",
 }
 
-_runtime = boto3.client("bedrock-runtime", region_name=REGION)
-_agent = boto3.client("bedrock-agent-runtime", region_name=REGION)
+# Adaptive retries back off automatically when Bedrock throttles (low default quotas on new accounts).
+_RETRY = Config(retries={"max_attempts": 8, "mode": "adaptive"}, read_timeout=60)
+_runtime = boto3.client("bedrock-runtime", region_name=REGION, config=_RETRY)
+_agent = boto3.client("bedrock-agent-runtime", region_name=REGION, config=_RETRY)
 _clients = boto3.resource("dynamodb", region_name=REGION).Table(CLIENTS_TABLE)
 
 INJECTION_PATTERNS = re.compile(

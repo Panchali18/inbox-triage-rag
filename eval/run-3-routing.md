@@ -27,7 +27,7 @@ Changes since run 2:
 | Cost per email | $0.0013 | $0.0013 | $0.0013 | |
 | Latency per email (median / max) | 3.5 s / 6.6 s | 3.1 s / 9.0 s | 2.8 s / 9.9 s | under 29 s |
 
-**1 error:** T23 failed during the run (39 of 40 scored). The cause is being checked. T23 ran correctly in the app beforehand.
+**1 error:** T23 failed during the run (39 of 40 scored). The cause was a Bedrock `ThrottlingException` (too many requests: the account's default model quota), not a pipeline bug. T23 ran correctly in the app. **Fixed after this run:** adaptive retries with backoff on all Bedrock calls, and a slower pace in the evaluation script.
 
 ## Notes
 - **Routing was 100%,** including T19 (an unknown sender's VAT question, now routed to the partner on duty) and T40 (the injection, to the practice manager for manual triage).
