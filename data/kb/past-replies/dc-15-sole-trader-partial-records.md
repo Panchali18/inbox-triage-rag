@@ -12,7 +12,7 @@
 
 ## Reply
 
-Hi Patrick,
+Hi Wojciech,
 
 Thanks, we've received:
 

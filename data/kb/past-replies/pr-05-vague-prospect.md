@@ -12,7 +12,7 @@
 
 ## Reply
 
-Hi Paul,
+Hi Kwame,
 
 Thanks for getting in touch.
 

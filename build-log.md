@@ -78,7 +78,13 @@ What I did at each step, what I decided, and what I learned.
 - Public sector content isn't automatically free to reuse. Check the licence first. Revenue's licence covers the text but not its logo, so I store the text only, not the PDFs.
 - An AI web-reading tool can return summaries rather than exact text. For a knowledge base, save the source yourself and check the copy word by word.
 
+- Created 15 fictional clients in `data/clients/clients.json`: 13 sole traders and 2 companies. Their names reflect a realistic mix of people in Ireland, with Irish, Polish, Lithuanian, Romanian, Spanish, Indian, Chinese, Brazilian, Nigerian and Ukrainian names. I renamed 10 people in the past replies to match, so the replies and the client table stay consistent. Six clients have outstanding documents, to test the documents step.
+- Emails use the reserved `example.com` domain, so no real person can be emailed by mistake.
+
+### Learned (client data)
+- Synthetic data should reflect the real customer base. A demo where every client has a stereotypically Irish name wouldn't match a practice in Ireland today.
+- Use reserved domains such as example.com for fake email addresses.
+
 ### Next
-- Create the client lookup data (about 12 fictional clients) for DynamoDB.
 - Create the S3 bucket and Knowledge Base, and upload the documents. Don't upload the README files.
 - Activate `Project` as a cost allocation tag after the first tagged resource exists.

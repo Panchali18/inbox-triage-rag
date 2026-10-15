@@ -12,7 +12,7 @@
 
 ## Reply
 
-Hi Emma,
+Hi Ioana,
 
 Yes, we can provide an income confirmation letter based on the latest return we filed for you. The fee is €60 per letter. Please allow 5 working days.
 

@@ -12,7 +12,7 @@
 
 ## Reply
 
-Hi Niall,
+Hi Rahul,
 
 Thanks for the question. The answer depends on your circumstances, and as set out in our engagement terms, we don't give tax advice by email.
 

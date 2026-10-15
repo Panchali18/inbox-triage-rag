@@ -1,0 +1,468 @@
+[
+  {
+    "email": "siobhan.ryan@example.com",
+    "client_id": "C001",
+    "name": "Siobhán Ryan",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Hairdresser",
+    "services": [
+      "form11"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received"
+    },
+    "notes": ""
+  },
+  {
+    "email": "kevin.brady@example.com",
+    "client_id": "C002",
+    "name": "Kevin Brady",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Electrician",
+    "services": [
+      "form11",
+      "vat"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received",
+      "ST-MOTOR": "received"
+    },
+    "notes": ""
+  },
+  {
+    "email": "ioana.popescu@example.com",
+    "client_id": "C003",
+    "name": "Ioana Popescu",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Physiotherapist",
+    "services": [
+      "form11"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received",
+      "ST-PENSION": "received"
+    },
+    "notes": "Requested an income confirmation letter for a mortgage (Feb 2026)."
+  },
+  {
+    "email": "lukas.petrauskas@example.com",
+    "client_id": "C004",
+    "name": "Lukas Petrauskas",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "IT contractor",
+    "services": [
+      "form11",
+      "vat"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received"
+    },
+    "notes": "Changed address in March 2026; new proof of address received."
+  },
+  {
+    "email": "fiona.kelly@example.com",
+    "client_id": "C005",
+    "name": "Fiona Kelly",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Photographer",
+    "services": [
+      "form11"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received",
+      "ST-MOTOR": "received"
+    },
+    "notes": ""
+  },
+  {
+    "email": "brian.walsh@example.com",
+    "client_id": "C006",
+    "name": "Brian Walsh",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Plumber",
+    "services": [
+      "form11",
+      "vat"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received",
+      "ST-MOTOR": "received"
+    },
+    "notes": ""
+  },
+  {
+    "email": "joe.dunne@example.com",
+    "client_id": "C007",
+    "name": "Joe Dunne",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Dairy farmer",
+    "services": [
+      "form11"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "outstanding",
+      "ST-ASSET": "outstanding"
+    },
+    "notes": "Told us records would be late (Sept 2026). Priority-processing charge applies."
+  },
+  {
+    "email": "ana.garcia@example.com",
+    "client_id": "C008",
+    "name": "Ana García",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Language tutor",
+    "services": [
+      "form11"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received"
+    },
+    "notes": ""
+  },
+  {
+    "email": "rahul.mehta@example.com",
+    "client_id": "C009",
+    "name": "Rahul Mehta",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Freelance graphic designer",
+    "services": [
+      "form11"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received"
+    },
+    "notes": "Asked about claiming home office costs (Jul 2026); offered consultation."
+  },
+  {
+    "email": "wojciech.nowak@example.com",
+    "client_id": "C010",
+    "name": "Wojciech Nowak",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Landscaper",
+    "services": [
+      "form11",
+      "bookkeeping_monthly"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "outstanding",
+      "ST-ASSET": "received",
+      "ST-MOTOR": "outstanding"
+    },
+    "notes": ""
+  },
+  {
+    "email": "eoin.byrne@example.com",
+    "client_id": "C011",
+    "name": "Eoin Byrne",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Personal trainer",
+    "services": [
+      "form11"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "outstanding",
+      "ST-SALES": "outstanding",
+      "ST-EXP": "outstanding",
+      "ST-ASSET": "outstanding"
+    },
+    "notes": "No 2025 records received yet. Reminder sent Aug 2026."
+  },
+  {
+    "email": "sarah.chen@example.com",
+    "client_id": "C012",
+    "name": "Sarah Chen",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Management consultant and landlord (1 property)",
+    "services": [
+      "form11",
+      "landlord_rental"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "ST-BANK": "received",
+      "ST-SALES": "received",
+      "ST-EXP": "received",
+      "ST-ASSET": "received",
+      "ST-RENT": "received"
+    },
+    "notes": "Revenue compliance letter received June 2026; handled by Declan Furlong."
+  },
+  {
+    "email": "marta.silva@example.com",
+    "client_id": "C013",
+    "name": "Marta Silva",
+    "client_type": "sole_trader",
+    "business_name": null,
+    "business_activity": "Yoga instructor",
+    "services": [
+      "form11"
+    ],
+    "assigned_accountant": "Ciarán Doyle",
+    "partner": "Declan Furlong",
+    "year_end": null,
+    "records_deadline": "2026-08-31",
+    "onboarding_status": "in_progress",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "outstanding",
+      "ON-ROS": "outstanding",
+      "ON-EL": "outstanding"
+    },
+    "annual_checklist": {},
+    "notes": "New client. Work cannot start until a partner completes identity verification."
+  },
+  {
+    "email": "adaeze.okafor@example.com",
+    "client_id": "C014",
+    "name": "Adaeze Okafor",
+    "client_type": "company",
+    "business_name": "Okafor Digital Ltd",
+    "business_activity": "Web design agency, 3 employees",
+    "services": [
+      "company_accounts",
+      "payroll",
+      "vat"
+    ],
+    "assigned_accountant": "Niamh Rowe",
+    "partner": "Aoife Gallagher",
+    "year_end": "12-31",
+    "records_deadline": "2026-03-31",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "LC-BANK": "received",
+      "LC-LEDGER": "received",
+      "LC-PAYROLL": "outstanding",
+      "LC-LOANS": "outstanding",
+      "LC-ASSET": "received",
+      "LC-DIRINFO": "received"
+    },
+    "notes": "Directors: Adaeze Okafor. Year ending 31 Dec 2025: records overdue."
+  },
+  {
+    "email": "olena.shevchenko@example.com",
+    "client_id": "C015",
+    "name": "Olena Shevchenko",
+    "client_type": "company",
+    "business_name": "Riverside Cycles Ltd",
+    "business_activity": "Bicycle shop and repairs, 4 employees",
+    "services": [
+      "company_accounts",
+      "payroll",
+      "vat",
+      "bookkeeping_monthly"
+    ],
+    "assigned_accountant": "Niamh Rowe",
+    "partner": "Aoife Gallagher",
+    "year_end": "06-30",
+    "records_deadline": "2026-09-30",
+    "onboarding_status": "complete",
+    "onboarding_checklist": {
+      "ON-ID": "received",
+      "ON-ADDR": "received",
+      "ON-PPSN": "received",
+      "ON-ROS": "received",
+      "ON-EL": "received"
+    },
+    "annual_checklist": {
+      "LC-BANK": "received",
+      "LC-LEDGER": "received",
+      "LC-PAYROLL": "received",
+      "LC-LOANS": "received",
+      "LC-ASSET": "received",
+      "LC-DIRINFO": "received",
+      "LC-STOCK": "outstanding"
+    },
+    "notes": "Directors: Olena Shevchenko, Ciara Moran. Year ending 30 Jun 2026."
+  }
+]
