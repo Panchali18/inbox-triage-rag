@@ -66,6 +66,9 @@ tout = sum(x["result"]["usage"]["output_tokens"] for x in ok)
 cost = sum(x["result"]["usage"]["cost_usd"] for x in ok)
 lat = sorted(x["result"]["latency_ms"] for x in ok)
 
+misses = [f"| {x['id']} | {', '.join(x['expected']['expected_sources'])} | "
+          f"{', '.join(p['source'] for p in x['result']['retrieved'])} |" for x in with_src if x not in hit]
+cl_bad = [f"| {x['id']} | {x['expected']['checklist_matches']} | {x['result']['checklist']} |" for x in cl if x not in cl_ok]
 misclassified = [f"| {x['id']} | {x['expected']['type']} | {x['result']['classification']['type']} | "
                  f"{x['result']['classification'].get('reason','')} |" for x in ok if x not in cls_ok]
 report = f"""# Evaluation report
@@ -97,6 +100,18 @@ Model: `{MODEL_ID}`. Emails run: {len(results)} ({len(results) - len(ok)} errors
 | ID | Expected | Got | Model's reason |
 |---|---|---|---|
 {chr(10).join(misclassified) or '| - | - | - | - |'}
+
+## Retrieval misses
+
+| ID | Expected source(s) | Retrieved (top 5) |
+|---|---|---|
+{chr(10).join(misses) or '| - | - | - |'}
+
+## Checklist mismatches
+
+| ID | Expected | Got |
+|---|---|---|
+{chr(10).join(cl_bad) or '| - | - | - |'}
 
 Costs use approximate Nova 2 Lite prices ($0.30 input and $2.50 output per million tokens) and exclude the small retrieval and embedding cost.
 """

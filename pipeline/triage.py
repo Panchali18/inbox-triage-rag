@@ -131,7 +131,8 @@ Classify the email into exactly ONE primary type:
 - documents_sent: the main purpose is sending documents/records (attachments).
 - revenue_or_penalty: the sender received or forwards a letter, notice, demand, surcharge, interest charge,
   audit or compliance contact from the Revenue Commissioners.
-- spam_or_supplier: marketing, newsletters, supplier invoices to the firm itself, and suspicious/phishing messages
+- spam_or_supplier: marketing, newsletters and bulk mailings (even if they discuss tax topics), supplier invoices to
+  the firm itself, and suspicious/phishing messages
   (including messages pretending to be Revenue that ask to verify logins or click links).
 
 Also return:
@@ -232,11 +233,29 @@ def draft_reply(email, cls, client, passages, usage):
     return ask(DRAFT_SYSTEM, user, usage, max_tokens=700, guardrail=True)
 
 
-CONSULT_SYSTEM = f"""You draft a short reply for Nore Valley Accountants to someone who is NOT a client and asked
-a tax advice question. {UNTRUSTED}
-Do NOT answer the question. Thank them, explain the firm does not give tax advice by email, and offer the advice
-consultation with a partner using the fee and length stated in the SOURCES, with its tag [S#]. Offer to arrange it.
-Sign off as "Sinéad Kehoe, Practice Manager, Nore Valley Accountants". Return only the email body."""
+def consultation_offer(email, passages):
+    """Template, not a model: the fee comes from the fee guide via a filtered KB search."""
+    r = _agent.retrieve(
+        knowledgeBaseId=KB_ID, retrievalQuery={"text": "Advice consultation with a partner 30 minutes fee"},
+        retrievalConfiguration={"vectorSearchConfiguration": {
+            "numberOfResults": 3, "filter": {"equals": {"key": "document", "value": "services-and-fees"}}}})
+    fee_line = None
+    for res in r["retrievalResults"]:
+        m = re.search(r"Advice consultation with a partner \((\d+) minutes\)\s*\|\s*(€[\d,]+)", res["content"]["text"])
+        if m:
+            fee_line = f"a {m.group(1)}-minute consultation with one of our partners, which costs {m.group(2)} (excluding VAT)"
+            passages.append({"ref": f"S{len(passages) + 1}", "source": "firm/services-and-fees.md", "score": 1.0,
+                             "text": res["content"]["text"], "url": None, "saved_on": None})
+            break
+    first = (email.get("from_name") or "there").split()[0]
+    offer = fee_line or "a paid consultation with one of our partners (we will confirm the fee)"
+    return "\n".join([
+        f"Hi {first},", "", "Thank you for getting in touch.", "",
+        "We don't give tax advice by email, because the right answer depends on your full circumstances. "
+        f"We'd be happy to go through your question in {offer}.", "",
+        "If you'd like to book, reply to this email and we'll arrange a time that suits you.", "",
+        "Kind regards,", "", "Sinéad Kehoe", "Practice Manager, Nore Valley Accountants"])
+
 
 BRIEFING_SYSTEM = f"""You write an internal briefing note for an accountant at Nore Valley Accountants.
 {UNTRUSTED}
@@ -362,13 +381,8 @@ def process_email(email: dict, dry_run=True) -> dict:
     elif t == "revenue_or_penalty":
         rec["briefing_note"] = briefing_note(email, cls, client, passages, usage)
         rec["status"], rec["action"] = "urgent_for_accountant" if rec["urgency"] == "high" else "for_accountant", "briefing note"
-    elif t == "advice_question" or (cls.get("advice_flag") and t != "documents_sent"):
-        rec["briefing_note"] = briefing_note(email, cls, client, passages, usage)
-        if not client:
-            rec["draft"] = ask(CONSULT_SYSTEM, f"{wrap_email(email)}\n\nSOURCES:\n{sources_block(passages)}", usage, 400)
-            rec["assigned_to"] = "Partner on duty"
-        rec["status"], rec["action"] = "for_accountant", "briefing note" + (" + consultation offer" if not client else "")
-    elif t == "documents_sent":
+    elif t == "documents_sent" or (client and rec["attachments"] and t in ("advice_question", "admin_question")):
+        # Multi-intent: a client sending files is always logged, even if they also ask something.
         result = match_documents(email, client, usage)
         rec["checklist"] = result
         if result:
@@ -383,6 +397,12 @@ def process_email(email: dict, dry_run=True) -> dict:
         if cls.get("advice_flag"):
             rec["briefing_note"] = briefing_note(email, cls, client, passages, usage)
         rec["status"], rec["action"] = "awaiting_review", "documents logged" + (" + briefing note" if cls.get("advice_flag") else "")
+    elif t == "advice_question" or cls.get("advice_flag"):
+        rec["briefing_note"] = briefing_note(email, cls, client, passages, usage)
+        if not client:
+            rec["draft"] = consultation_offer(email, passages)
+            rec["assigned_to"] = "Partner on duty"
+        rec["status"], rec["action"] = "for_accountant", "briefing note" + (" + consultation offer" if not client else "")
     else:  # prospect / admin_question
         rec["draft"] = draft_reply(email, cls, client, passages, usage)
         rec["status"], rec["action"] = "awaiting_review", "draft reply"
@@ -390,7 +410,7 @@ def process_email(email: dict, dry_run=True) -> dict:
     if rec["draft"] == "__GUARDRAIL_BLOCKED__":
         rec["draft"], rec["status"] = None, "blocked_by_guardrail"
         flags.append("guardrail")
-    if rec["draft"] and rec["action"] not in ("documents logged",):
+    if rec["draft"] and not rec["action"].startswith("documents logged"):
         rec["fact_check"] = fact_check(rec["draft"], passages, client)
         if rec["fact_check"]["unsupported"]:
             flags.append("unsupported_facts")
