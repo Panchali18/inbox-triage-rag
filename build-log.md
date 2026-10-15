@@ -206,6 +206,32 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - One retrieval metric was measuring the wrong thing: advice emails never get a drafted reply, so whether they retrieve the policy document doesn't matter. I added a second metric for emails that do get a draft, and kept the original alongside it.
 - The model copied a specific appointment day from a past reply. Past replies need an explicit "tone and structure only" rule.
 
+- **Tested the live API** with a new email from Siobhán ("can I pay by card?"). It was classified as an admin question, she was recognised as client C001, and the draft quoted card or bank transfer within 14 days, with sources. Cost 0.12 cents, about 2 seconds.
+- **Built the first version of the front end in Lovable** from `frontend/lovable-prompt.md`: the queue, a detail panel and approve/edit/reject. The API key was added in Lovable only, not in GitHub.
+- Extended the fact check to cover day counts ("14 days") and call lengths ("20-minute"), after noticing "14 days" wasn't being checked.
+- **Client version of drafts:** the stored draft keeps `[S1]` source tags for review, and a tag-free version is saved as `final_client_text` on approval. Source tags must never reach a client. (Code pushed; it goes live with the next `update_lambda.sh`.)
+
+### Decided (review experience, after a design discussion)
+- **The draft is shown clean, as an email,** with no inline `[S1]` tags. The tags were useful for checking, but they made the draft read like a document rather than an email.
+- **Fact-check warnings are exception-only:** silent when every fact is supported, a clear warning when a figure isn't in any firm document. The check stays, because it caught the €150 error, but it doesn't clutter routine reviews.
+- **Side panel = client context,** meaning the client card plus this sender's previous emails in the system. There are deliberately no AI-written explanations, to keep it simple.
+- **Sources are kept, collapsed, for audit,** so the firm can show where a reply came from if it's ever disputed.
+- **Routing:**
+  - admin questions and prospects go to Sinéad
+  - documents, advice and Revenue letters go to the client's accountant (a partner if the sender is unknown)
+  - spam is filed
+  - injection attempts and low-confidence emails go to Sinéad for manual triage
+
+  This fixes a gap where everything went to the client's accountant, even invoice questions.
+- **Shared inbox to personal mailboxes:** every email lands in the shared inbox, and after triage it's routed to the assignee's mailbox. The demo simulates this with a mailbox selector. Real forwarding is on the v2 list.
+- **Success measures:** correct categorisation and routing, timely turnaround (time from arrival to decision), and resolution (items reaching Done).
+
+### Learned (review experience)
+- The best review screen matches how the reviewer works, not what the system can show. Inline citations suit a research paper. An email reviewer needs a clean email, context about the sender, and warnings only when something is wrong.
+- A traceability feature (source tags) and a presentation choice (show them or not) are separate decisions. Keep the data, and choose the display for the user.
+- Routing was under-specified in the original scope. "Assigned accountant" isn't the right owner for admin work. Writing out the routing table exposed it.
+
 ### Next
-- Test the live API, then build the Lovable front end.
+- Implement US-18 to US-20: routing rules, mailbox views, the clean draft with exception-only warnings, and the client context panel. Then update the Lambda and the Lovable app.
+- Re-run the evaluation (run 3) with routing accuracy added.
 - Add the Bedrock Guardrail.

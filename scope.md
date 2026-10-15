@@ -12,10 +12,12 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 | 1 | Synthetic knowledge base: firm documents, 20 past replies, 9 Revenue pages | ✅ Done (15 Oct) |
 | 1 | Synthetic client table (15 clients) loaded into DynamoDB | ✅ Done (15 Oct) |
 | 1 | Knowledge Base set up and tested in the console | ✅ Done (15 Oct) |
-| 1 | 40 synthetic test emails with expected results | ✅ Drafted (15 Oct), awaiting review |
+| 1 | 40 synthetic test emails with expected results | ✅ Done (15 Oct) |
 | 2 | Lambda pipeline and API | ✅ Deployed (15 Oct) |
-| 2 | Guardrails, Lovable front end | ⏳ Next |
-| 3 | Evaluation | ✅ Runs 1 and 2 done (15 Oct) |
+| 2 | Lovable front end, first version (queue, detail, approve/edit/reject) | ✅ Built (15 Oct) |
+| 2 | Routing rules, mailbox views, review-screen redesign (US-18 to US-20) | ⏳ Next |
+| 2 | Bedrock Guardrail | ⏳ Not started |
+| 3 | Evaluation | ✅ Runs 1 and 2 done (15 Oct). Run 3 started, results not yet recorded. |
 | 3 | RAG vs prompt-stuffing comparison, README, recording, post | ⏳ Not started |
 
 ## Personas
@@ -120,7 +122,7 @@ As a triage reviewer, I want Revenue letters and penalty notices at the top of t
 **US-10 Fact check drafts**
 As a triage reviewer, I want unsupported facts flagged so that I never send an invented fee, date or promise.
 - AC1: Every fee, date, deadline and commitment in a draft is checked against the retrieved passages and the client record.
-- AC2: Each unsupported item is highlighted in the review screen with the label `unsupported`.
+- AC2: Exception-only display: nothing is shown when every fact is supported. Each unsupported item is shown as a clear warning (for example "€150 isn't in any of the firm's documents. Check before approving."), and calculated amounts are shown as "check the maths".
 - AC3: A draft with any unsupported item cannot be approved without an edit or an explicit override, and overrides are logged.
 - AC4: Invented facts that reach `approved` total 0 on the test set.
 
@@ -141,9 +143,38 @@ As the practice, I want email content treated as data so that a sender can't cha
 **US-13 Review queue**
 As a triage reviewer, I want one queue to approve, edit or reject drafts so that a human decides everything.
 - AC1: The queue is sorted with urgent items first, then by received time; it shows type, confidence, sender, client status and flags.
-- AC2: Detail view shows the email, extracted fields, sources, the draft and the fact-check flags.
+- AC2: Detail view shows the email and the **clean draft**, with no source tags. The client card and history sit in a side panel (US-20). Fact-check warnings appear only when there's a problem. The list of retrieved sources is **collapsed at the bottom**, for audit.
 - AC3: Approve, edit-then-approve and reject (with a reason) all update the status and are logged with a timestamp.
 - AC4: No email is ever sent; an approved draft just shows status `approved (not sent — demo)`.
+
+**US-18 Route to the right person**
+As the practice, I want every email routed to the person who handles that kind of work, so that nothing waits in the shared inbox.
+- AC1: Routing rules:
+
+  | Type | Assigned to |
+  |---|---|
+  | prospect | Sinéad Kehoe (practice manager) |
+  | admin_question | Sinéad Kehoe |
+  | documents_sent | Client's assigned accountant |
+  | advice_question, existing client | Client's assigned accountant |
+  | advice_question, unknown sender | A partner (consultation offer) |
+  | revenue_or_penalty | Client's assigned accountant, urgent (a partner if the sender is unknown) |
+  | spam_or_supplier | Nobody: filed |
+  | injection flag or low confidence | Sinéad Kehoe, for manual triage |
+
+- AC2: The record shows who it's assigned to and why (the rule applied).
+- AC3: The test set reports routing accuracy alongside classification accuracy.
+
+**US-19 Personal mailboxes**
+As a staff member, I want triaged emails to land in my own mailbox, so that the shared inbox stays clear and I only see my work.
+- AC1: The app has a mailbox selector: **Shared inbox** (everything), plus Sinéad, Ciarán, Niamh, Declan and Aoife, each showing only items assigned to them. There's no login, since it's a demo.
+- AC2: In v1, "sent to a personal mailbox" is simulated by the assignment. A real deployment would forward or move the email through the Microsoft Graph or Gmail API (out of scope for v1).
+
+**US-20 Client context**
+As a reviewer, I want to see who the sender is and our recent history with them, so that I can decide quickly without searching.
+- AC1: A side panel shows the client card (name, type, services, assigned accountant, outstanding items) or "Not a client".
+- AC2: It lists this sender's previous emails handled by the system: date, subject, type and outcome.
+- AC3: No AI-written explanations ("what this email is", "what the draft is based on"), to keep the screen simple.
 
 ### Operate and evaluate
 
@@ -194,7 +225,7 @@ As the builder, I want costs capped and resources tagged so that the project doe
 
 - **OQ-1 Targets.** What is the classification accuracy target (I'd suggest at least 90%)? And should advice detection be held to 100% recall, like urgent items? I'd recommend yes, because one missed advice question breaks the main design rule.
 - **OQ-2 Low confidence.** Should a low-confidence email go to `needs_human_triage` (my recommendation) or be forced into one of the six types? If routing, what threshold?
-- **OQ-3 Multi-intent emails.** *(Test set uses the recommended default: one primary type plus flags. Confirm.)* For example, documents sent plus an advice question. Is "primary type + flags, and an advice flag always creates a briefing note" right?
+- ~~**OQ-3 Multi-intent emails.**~~ **Decided:** one primary type plus flags. A client sending attachments always has them logged, and an advice flag always produces a briefing note. Original question: For example, documents sent plus an advice question. Is "primary type + flags, and an advice flag always creates a briefing note" right?
 - ~~**OQ-4 Unknown sender asking for advice.**~~ **Decided:** reply offering the €120 partner consultation (as listed in the fee guide), and send a briefing note to a partner.
 - ~~**OQ-5 Demo lifetime.**~~ **Decided:** the demo stays live until 10 April 2027 (free-plan end), and resources are tagged `DeleteAfter = 2027-04-10`. The build itself still closes on 6 November 2026.
 - ~~**OQ-6 Fact-check method.**~~ **Decided:** rule-based (extract € / % / dates / working days and match them against the sources; derivable sums are marked "calculated" for a human). Original question: Should the check be a second model call (simpler), or rule-based extraction of numbers and dates compared against sources (cheaper and more predictable)? Possibly both.
@@ -206,4 +237,8 @@ Real Gmail/Outlook integration, sending email, real client data, tax advice, AML
 
 ## v2 list
 
-_(empty — add items here at close date)_
+- Real mailbox integration (Microsoft Graph or Gmail API) to read the shared inbox and forward triaged emails to personal mailboxes.
+
+## Ideas raised, not decided
+
+- **Feedback loop:** approved or edited replies could be added to the knowledge base as new past replies, so future drafts reuse approved wording. This needs PII removal and safeguards so a bad edit can't spread.

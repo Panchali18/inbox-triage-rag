@@ -25,14 +25,15 @@ Urgent items get buried, prospects wait days, and staff answer the same admin qu
 2. **Extract** the sender, what they need, any dates, and the urgency.
 3. **Look up** the sender in the client table: are they a client, what services do they have, who is their accountant, what's outstanding?
 4. **Retrieve** relevant passages from the knowledge base: firm documents, past replies and Revenue guidance.
-5. **Act by type:**
+5. **Route** the email to the right person's mailbox: admin and prospects to the practice manager, documents, advice and Revenue letters to the client's accountant, spam filed.
+6. **Act by type:**
    - **Prospect or admin question:** draft a grounded reply with citations.
    - **Advice question:** no client draft; a briefing note goes to the accountant.
    - **Documents sent:** match them to the checklist and list what's missing.
    - **Revenue letter or penalty:** mark urgent and put it at the top of the queue.
    - **Spam or supplier:** file it.
-6. **Check** that every fee, date and promise in a draft appears in a retrieved source.
-7. **Human review:** approve, edit or reject. Nothing is sent.
+7. **Check** that every fee, date and promise in a draft appears in a retrieved source.
+8. **Human review:** the reviewer sees a clean draft, the client's context and history, and a warning only if a fact can't be found in the firm's documents. They approve, edit or reject. Nothing is sent, and source tags never reach a client.
 
 Full user stories and acceptance criteria: [scope.md](scope.md).
 
@@ -57,7 +58,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | Pipeline | AWS Lambda (Python 3.12, arm64), `inbox-triage-v1-api` | ✅ Deployed |
 | API | Amazon API Gateway REST API with an API key and usage plan (2 req/s, 300/day) | ✅ Deployed |
 | Safety | Amazon Bedrock Guardrails (no tax advice, PII filters) | Planned, week 2 |
-| Front end | Lovable (React) | Planned, week 2 |
+| Front end | Lovable (React) | ✅ First version built. Redesign in progress (routing, mailboxes, client context). |
 | Evaluation | RAGAS, plus a custom test set of 40 emails | Planned, week 3 |
 | Observability | Amazon CloudWatch | Planned, week 2 |
 
