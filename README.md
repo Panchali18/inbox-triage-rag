@@ -94,6 +94,11 @@ Full results and what changed between runs: [`eval/`](eval/).
 |---|---|
 | `scope.md` | User stories, acceptance criteria, assumptions and open questions |
 | `build-log.md` | Step-by-step log of decisions and learnings |
+| `docs/linkedin-story-bank.md` | Post-ready stories from the build, with evidence and numbers |
+| `eval/` | Evaluation reports for runs 1–5, plus the RAG vs prompt-stuffing comparison (when run) |
+| `pipeline/triage.py` | The triage pipeline (classify, look up, route, retrieve, act, fact check, guardrail) |
+| `lambda/handler.py` | API routes for the front end |
+| `frontend/` | Lovable prompts (v2 is current) |
 | `data/kb/firm/` | 4 synthetic firm documents: fees, engagement terms, checklists, FAQ |
 | `data/kb/past-replies/` | 20 synthetic past replies |
 | `data/kb/revenue/` | 9 revenue.ie pages, saved as text with attribution |

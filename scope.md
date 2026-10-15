@@ -239,6 +239,13 @@ Real Gmail/Outlook integration, sending email, real client data, tax advice, AML
 
 - Real mailbox integration (Microsoft Graph or Gmail API) to read the shared inbox and forward triaged emails to personal mailboxes.
 
+## Small improvements noted (not yet scheduled)
+
+- Show checklist item names, not codes, in the front end (the API already provides them).
+- Reword the advice banner: "no tax advice is given; the client is offered a consultation or the accountant replies".
+- Match the sender's language level in drafts (simpler English for senders who write simply).
+- A template for company payroll quotes, because the model keeps combining prices (T06).
+
 ## Ideas raised, not decided
 
 - **Feedback loop:** approved or edited replies could be added to the knowledge base as new past replies, so future drafts reuse approved wording. This needs PII removal and safeguards so a bad edit can't spread.

@@ -21,6 +21,17 @@ What I built at each step, the decisions I made and why, and what I learned alon
 | Firm name | Nore Valley Accountants (fictional) | First idea, "Brennan & Kerr", was too close to a real firm (RBK) | |
 | Revenue content | 9 pages saved as text, with CC BY 4.0 attribution | Revenue's licence allows reuse with credit, but not its logos | Storing the PDFs: they contain the Revenue logo |
 | Expenses guidance | Left out | Only available in long technical manuals. Expense questions are advice, so they go to an accountant. | |
+| Knowledge base text | Clean text, with labels in `.metadata.json` files | Repeated banners and header tables weakened search results (found in testing) | Banners inside each document |
+| Main model access | EU cross-region inference profile (`eu.amazon.nova-2-lite-v1:0`) | Processing stays in EU regions | The "global" profile, which could route anywhere |
+| Fact check | Rule-based: every €, %, date (with year), day count and call length looked up in the sources and the sender's own email | Free, predictable, explainable. It caught €150 vs €120 and a wrong year. | A second AI call to judge facts: costs more, and can itself be wrong |
+| Fixed replies | Templates (documents received, consultation offer) | Wording that never changes can't be invented | AI-written every time |
+| Advice rule | Enforced in code: advice never gets a client answer, only a briefing note or a consultation offer | Prompts alone were ignored in testing | Relying on the prompt |
+| Guardrail | Bedrock Guardrail on the **output draft only**: denied topic "personal tax advice", PII masking | A second, independent layer. Screening the incoming email would block the advice questions we need to route. | Guardrail on the input, or no guardrail |
+| Routing | A deterministic table: admin and prospects to the practice manager, documents, advice and Revenue letters to the client's accountant (a partner if unknown), spam filed, injection and low-confidence emails to manual triage | Predictable, explainable, testable (100% in the evaluation) | Letting the AI choose the assignee |
+| Review screen | Clean draft, client card and history beside it, warnings only when something's wrong, sources collapsed | Matches how a reviewer works with email | Inline `[S1]` citation tags in the draft |
+| Throttling | Adaptive retries with backoff on every Bedrock call | New accounts have low model quotas. One evaluation email failed before this. | Failing on the first throttle |
+| Deployment | Scripts run in CloudShell (`deploy.sh`, `update_lambda.sh`, `reset_demo.sh`, `rotate_api_key.sh`) | Repeatable, and documented in the repo | Clicking through the console |
+| Front end | Lovable (React) calling the API through a server-side proxy (secure version), or directly with a rate-limited key (demo version) | Lovable is in AI job posts. The server-side version keeps the key out of the browser. | Streamlit (excluded in the brief) |
 
 ---
 
@@ -273,7 +284,20 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - **Blocks can reveal other bugs.** The T11 block exposed a wrong year that the fact check had missed, because it compared dates without years.
 - **Throttling is a real production concern,** even at demo scale. New accounts have low model quotas, so retries with backoff are needed from day one.
 
+### Human review in the app (US-13)
+- **Approve:** Tariq's consultation offer was approved. It moved to Done, the history recorded the decision, and "Avg time to decision" showed 2.4 minutes.
+- **Edit, then approve:** Mateus's draft contained personal advice ("you will need to register for taxes"). The paragraph was deleted in the app and the draft saved with "Save edit & approve". The history shows `edit → approved`, so the human correction is auditable. This happened before the guardrail existed, and was the case that motivated it.
+- **Reject:** "Confirm reject" stays disabled until a reason is typed, as US-13 requires.
+- **A judgement left to the human:** Siobhán's "still waiting" draft said "your query is with Ciarán". Ciarán is her accountant per the client record, so it's plausible, but nobody knows what her earlier email was about. That's left for the reviewer to check rather than adding another prompt rule.
+
+### Small items noted for later (not yet done)
+- The Lovable checklist shows codes (`ST-EXP`) instead of names. The API already returns `matched_names` and `still_outstanding_names`.
+- The advice banner says "no answer is drafted for the client", but unknown senders do get a consultation offer. Better wording: "Advice question: no tax advice is given; the client is offered a consultation or the accountant replies."
+- Drafts to senders who write in simple English (T05) use fairly formal language. A "match the sender's language level" rule would be kinder.
+- T06 (company payroll quote): the model keeps combining prices, flagged amber every time. It's a candidate for a template quote.
+
 ### Next
 - Update the Lambda with the latest code (year check, attribution rule) and run a quick in-app check.
 - Finish the secure Lovable version (key server-side) when credits reset, rotate the API key, and fix the small front-end items: checklist names, advice banner wording.
-- RAG vs prompt-stuffing comparison (US-16), README results section, screen recording, LinkedIn post.
+- RAG vs prompt-stuffing comparison (US-16): code ready (`--stuffing` mode, `scripts/compare_rag_stuffing.py`), to be run.
+- Screen recording, LinkedIn posts (see `docs/linkedin-story-bank.md`).
