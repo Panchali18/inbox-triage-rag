@@ -53,7 +53,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | Embeddings | Amazon Titan Text Embeddings V2 (1024 dimensions) | ✅ |
 | Document storage | Amazon S3 | ✅ |
 | Main model | Amazon Nova 2 Lite (EU cross-region inference profile) | ✅ Tested in the console |
-| Client lookup | Amazon DynamoDB | ⏳ Next |
+| Client lookup | Amazon DynamoDB (`inbox-triage-v1-clients`, 15 clients) | ✅ Loaded |
 | Pipeline | AWS Lambda (Python) | Planned, week 2 |
 | API | Amazon API Gateway with an API key | Planned, week 2 |
 | Safety | Amazon Bedrock Guardrails (no tax advice, PII filters) | Planned, week 2 |
@@ -80,6 +80,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | `data/kb/past-replies/` | 20 synthetic past replies |
 | `data/kb/revenue/` | 9 revenue.ie pages, saved as text with attribution |
 | `data/clients/clients.json` | 15 synthetic clients for the DynamoDB lookup |
+| `scripts/load_clients.py` | Loads `clients.json` into DynamoDB (run in AWS CloudShell) |
 | `scripts/build_kb_upload.py` | Builds `kb-upload/`: clean text plus `.metadata.json` files |
 | `kb-upload/` | The files actually uploaded to S3 for the knowledge base |
 
@@ -122,6 +123,7 @@ This demo uses synthetic data only. A real practice would also need:
 | S3 bucket | `inbox-triage-v1-kb-docs-pd` |
 | Bedrock Knowledge Base | `inbox-triage-v1-kb` (data source `inbox-triage-v1-kb-docs`) |
 | S3 vector bucket and index | Created automatically by the Knowledge Base quick create |
+| DynamoDB table | `inbox-triage-v1-clients` |
 | IAM role | `AmazonBedrockExecutionRoleForKnowledgeBase_vg70k` |
 | AWS Budget | `account-monthly-5usd` (account-wide, kept after clean-up) |
 

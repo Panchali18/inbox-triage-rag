@@ -10,7 +10,7 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 |---|---|---|
 | 1 | Account checks, budget, tags | ✅ Done (14 Oct) |
 | 1 | Synthetic knowledge base: firm documents, 20 past replies, 9 Revenue pages | ✅ Done (15 Oct) |
-| 1 | Synthetic client table (15 clients) | ✅ Written. Loading into DynamoDB is next. |
+| 1 | Synthetic client table (15 clients) loaded into DynamoDB | ✅ Done (15 Oct) |
 | 1 | Knowledge Base set up and tested in the console | ✅ Done (15 Oct) |
 | 1 | 40 synthetic test emails | ⏳ Not started |
 | 2 | Lambda pipeline, API, guardrails, Lovable front end | ⏳ Not started |

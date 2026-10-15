@@ -144,6 +144,16 @@ What I built at each step, the decisions I made and why, and what I learned alon
 
 - Rewrote the repo README with the problem, design, architecture (built vs planned), repo layout, data and licence notes, GDPR note, cost controls, an AWS clean-up list and limitations. Added a progress table to the scope.
 
+- Created the DynamoDB table `inbox-triage-v1-clients`: partition key `email` (String), on-demand capacity, tagged. Loaded all 15 clients from AWS CloudShell with `scripts/load_clients.py`, which confirmed 15 items in the table.
+
+### Decided (client table)
+- **Partition key is the email address,** because the pipeline's first question is "who sent this?" and an email is what it has. One exact read, with no search needed.
+- **On-demand capacity** rather than provisioned. We pay per request, which is fractions of a cent at demo volume, and there's nothing to size.
+- **Loaded by script from CloudShell,** not typed into the console. The script is in the repo, so the table can be rebuilt identically at any time, and running it again overwrites rather than duplicates.
+
+### Learned (client table)
+- CloudShell is a signed-in command line inside the AWS console. It can clone the GitHub repo and run a script with no local setup.
+- Keeping data and loader scripts in the repo makes the AWS setup repeatable. It's the first step towards infrastructure as code.
+
 ### Next
-- Load the client table into DynamoDB.
 - Write the 40 synthetic test emails.
