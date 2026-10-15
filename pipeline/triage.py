@@ -85,17 +85,34 @@ class Usage:
 
 
 def ask(system: str, user: str, usage: Usage, max_tokens=800, guardrail=False) -> str:
-    kwargs = dict(modelId=MODEL_ID, system=[{"text": system}],
-                  messages=[{"role": "user", "content": [{"text": user}]}],
-                  inferenceConfig={"maxTokens": max_tokens, "temperature": 0})
-    if guardrail and GUARDRAIL_ID:
-        kwargs["guardrailConfig"] = {"guardrailIdentifier": GUARDRAIL_ID,
-                                     "guardrailVersion": GUARDRAIL_VERSION, "trace": "enabled"}
-    r = _runtime.converse(**kwargs)
+    r = _runtime.converse(modelId=MODEL_ID, system=[{"text": system}],
+                          messages=[{"role": "user", "content": [{"text": user}]}],
+                          inferenceConfig={"maxTokens": max_tokens, "temperature": 0})
     usage.add(r.get("usage", {}))
-    if r.get("stopReason") == "guardrail_intervened":
-        return "__GUARDRAIL_BLOCKED__"
     return "".join(c.get("text", "") for c in r["output"]["message"]["content"])
+
+
+def check_with_guardrail(draft: str):
+    """Apply the Bedrock Guardrail to the finished client draft only (source=OUTPUT).
+    The incoming email is NOT screened: a client asking an advice question must still be routed.
+    Returns (blocked: bool, reasons: list[str], masked_text: str)."""
+    if not GUARDRAIL_ID or not draft:
+        return False, [], draft
+    r = _runtime.apply_guardrail(guardrailIdentifier=GUARDRAIL_ID, guardrailVersion=GUARDRAIL_VERSION,
+                                 source="OUTPUT", content=[{"text": {"text": draft}}])
+    reasons = []
+    for a in r.get("assessments", []):
+        for t in a.get("topicPolicy", {}).get("topics", []):
+            reasons.append(f"denied topic: {t.get('name')}")
+        for e in a.get("sensitiveInformationPolicy", {}).get("piiEntities", []):
+            reasons.append(f"PII {e.get('type')} ({e.get('action')})")
+        for e in a.get("sensitiveInformationPolicy", {}).get("regexes", []):
+            reasons.append(f"pattern {e.get('name')} ({e.get('action')})")
+    if r.get("action") != "GUARDRAIL_INTERVENED":
+        return False, reasons, draft
+    blocked = any(x.startswith("denied topic") or x.endswith("(BLOCKED)") for x in reasons)
+    masked = "".join(o.get("text", "") for o in r.get("outputs", [])) or draft
+    return blocked, reasons, (draft if blocked else masked)
 
 
 def ask_json(system, user, usage, max_tokens=800):
@@ -472,9 +489,17 @@ def process_email(email: dict, dry_run=True) -> dict:
         rec["draft"] = draft_reply(email, cls, client, passages, usage)
         rec["status"], rec["action"] = "awaiting_review", "draft reply"
 
-    if rec["draft"] == "__GUARDRAIL_BLOCKED__":
-        rec["draft"], rec["status"] = None, "blocked_by_guardrail"
-        flags.append("guardrail")
+    rec["guardrail"] = None
+    is_template = rec["action"].startswith("documents logged") or "consultation offer" in rec["action"]
+    if rec["draft"] and not is_template:   # templates are fixed text and need no screening
+        blocked, reasons, text = check_with_guardrail(client_version(rec["draft"]))
+        rec["guardrail"] = {"blocked": blocked, "reasons": reasons} if reasons else None
+        if blocked:
+            rec["blocked_draft"] = rec["draft"]          # kept for audit, never shown as a draft
+            rec["draft"], rec["status"] = None, "blocked_by_guardrail"
+            flags.append("guardrail")
+        elif reasons:                                    # PII masked, draft kept
+            rec["draft"] = text
     if rec["draft"] and not rec["action"].startswith("documents logged"):
         rec["fact_check"] = fact_check(rec["draft"], passages, client, email)
         if rec["fact_check"]["unsupported"]:

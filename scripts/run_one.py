@@ -34,6 +34,10 @@ for tid in sys.argv[1:] or ["T01"]:
         print("\n  --- briefing note ---\n" + r["briefing_note"])
     if r["draft"]:
         print("\n  --- draft ---\n" + r["draft"])
+    if r.get("guardrail"):
+        print(f"\n  guardrail : {r['guardrail']}")
+    if r.get("blocked_draft"):
+        print("\n  --- BLOCKED draft (audit only) ---\n" + r["blocked_draft"])
     if r["fact_check"]:
         print(f"\n  fact check: {r['fact_check']}")
     print(f"\n  usage     : {r['usage']}  latency {r['latency_ms']} ms")
