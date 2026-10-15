@@ -2,6 +2,7 @@
 
 Routes:
   GET    /emails                  list the queue (urgent first, then newest)
+                                  optional filters: ?assigned_to=Name  ?from_email=address (sender history)
   POST   /emails                  submit a new email -> run the pipeline -> store and return the record
   GET    /emails/{id}             one record
   POST   /emails/{id}/decision    approve | edit | reject a draft (human review)
@@ -77,6 +78,13 @@ def handler(event, context):
                 if "LastEvaluatedKey" not in page:
                     break
                 kwargs["ExclusiveStartKey"] = page["LastEvaluatedKey"]
+            q = event.get("queryStringParameters") or {}
+            if q.get("assigned_to"):
+                items = [r for r in items if r.get("assigned_to") == q["assigned_to"]]
+            if q.get("from_email"):
+                items = [r for r in items if r.get("from_email") == q["from_email"].strip().lower()]
+                items.sort(key=lambda r: -(r.get("submitted_epoch") or 0))   # history: newest first
+                return _resp(200, items)
             items.sort(key=lambda r: (STATUS_ORDER.get(r.get("status"), 9), -(r.get("submitted_epoch") or 0)))
             return _resp(200, items)
 
@@ -93,6 +101,7 @@ def handler(event, context):
             _emails.put_item(Item=_to_ddb(rec))
             c = rec["classification"]
             _log("triaged", email_id=rec["email_id"], type=c["type"], confidence=c.get("confidence"),
+                 assigned_to=rec["assigned_to"],
                  urgency=rec["urgency"], flags=rec["flags"], status=rec["status"], usage=rec["usage"],
                  latency_ms=rec["latency_ms"], retrieved=[p["source"] for p in rec["retrieved"]])
             return _resp(201, rec)

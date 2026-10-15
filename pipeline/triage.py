@@ -32,6 +32,10 @@ TOP_K = 5
 # Approximate Nova 2 Lite prices (USD per 1M tokens). Check the Bedrock pricing page for your region.
 PRICE_IN, PRICE_OUT = 0.30, 2.50
 
+PRACTICE_MANAGER = "Sinéad Kehoe"
+PARTNER_ON_DUTY = os.environ.get("PARTNER_ON_DUTY", "Declan Furlong")
+STAFF = ["Sinéad Kehoe", "Ciarán Doyle", "Niamh Rowe", "Declan Furlong", "Aoife Gallagher"]
+
 TYPES = ["prospect", "admin_question", "advice_question", "documents_sent",
          "revenue_or_penalty", "spam_or_supplier"]
 
@@ -168,6 +172,28 @@ def classify(email, usage):
     return out
 
 
+# ---------------------------------------------------------------- routing (US-18)
+def route(email_type: str, flags: list, client) -> tuple:
+    """Return (assigned_to, reason). Deterministic rules agreed with the practice. None = filed."""
+    accountant = (client or {}).get("assigned_accountant")
+    if "injection" in flags:
+        return PRACTICE_MANAGER, "Possible prompt injection: manual triage by the practice manager"
+    if email_type == "spam_or_supplier":
+        return None, "Spam, newsletter or supplier mail: filed"
+    if "low_confidence" in flags:
+        return PRACTICE_MANAGER, "Low classification confidence: manual triage by the practice manager"
+    if email_type in ("prospect", "admin_question"):
+        return PRACTICE_MANAGER, "Prospects and admin questions are handled by the practice manager"
+    if email_type == "documents_sent":
+        return (accountant, "Client documents go to the client's accountant") if accountant else \
+               (PRACTICE_MANAGER, "Documents from an unknown sender: practice manager to check")
+    if email_type in ("advice_question", "revenue_or_penalty"):
+        what = "Advice questions" if email_type == "advice_question" else "Revenue letters and penalties"
+        return (accountant, f"{what} go to the client's accountant") if accountant else \
+               (PARTNER_ON_DUTY, f"{what} from an unknown sender go to the partner on duty")
+    return PRACTICE_MANAGER, "Default: practice manager"
+
+
 # ---------------------------------------------------------------- 2. look up (tool, not RAG)
 def lookup(email_address: str):
     item = _clients.get_item(Key={"email": email_address.strip().lower()}).get("Item")
@@ -198,6 +224,18 @@ def sources_block(passages):
             label += f" (revenue.ie, saved {p.get('saved_on')}: {p['url']})"
         lines.append(f"[{p['ref']}] {label}\n{p['text']}")
     return "\n\n".join(lines)
+
+
+def client_card(client):
+    """Snapshot for the reviewer's context panel (US-20). Outstanding items as readable names."""
+    if not client:
+        return None
+    codes = {**(client.get("onboarding_checklist") or {}), **(client.get("annual_checklist") or {})}
+    return {"client_id": client["client_id"], "name": client["name"], "client_type": client.get("client_type"),
+            "business_name": client.get("business_name"), "business_activity": client.get("business_activity"),
+            "services": client.get("services"), "assigned_accountant": client.get("assigned_accountant"),
+            "partner": client.get("partner"), "onboarding_status": client.get("onboarding_status"),
+            "outstanding": [CHECKLIST_NAMES.get(c, c) for c, v in codes.items() if v == "outstanding"]}
 
 
 def client_block(client):
@@ -368,9 +406,7 @@ def process_email(email: dict, dry_run=True) -> dict:
     cls = classify(email, usage)
     client = lookup(email["from_email"])
     rec["classification"] = cls
-    rec["client"] = ({"client_id": client["client_id"], "name": client["name"],
-                      "assigned_accountant": client.get("assigned_accountant"), "partner": client.get("partner")}
-                     if client else None)
+    rec["client"] = client_card(client)
 
     t, flags = cls["type"], []
     for f in ("advice_flag", "injection_flag", "phishing_flag"):
@@ -379,10 +415,11 @@ def process_email(email: dict, dry_run=True) -> dict:
     if cls.get("confidence", 0) < CONFIDENCE_THRESHOLD:
         flags.append("low_confidence")
     rec["flags"], rec["urgency"] = flags, cls.get("urgency", "normal")
-    rec["assigned_to"] = (client or {}).get("assigned_accountant") or "Partner on duty"
+    rec["assigned_to"], rec["routing_reason"] = route(t, flags, client)
 
     passages = [] if t == "spam_or_supplier" else retrieve(email, cls)
-    rec["retrieved"] = [{k: p[k] for k in ("ref", "source", "score", "url")} for p in passages]
+    rec["retrieved"] = [{**{k: p[k] for k in ("ref", "source", "score", "url")}, "snippet": p["text"][:400]}
+                        for p in passages]
     rec["draft"] = rec["briefing_note"] = rec["checklist"] = None
     rec["fact_check"] = None
 
@@ -413,7 +450,6 @@ def process_email(email: dict, dry_run=True) -> dict:
         rec["briefing_note"] = briefing_note(email, cls, client, passages, usage)
         if not client:
             rec["draft"] = consultation_offer(email, passages)
-            rec["assigned_to"] = "Partner on duty"
         rec["status"], rec["action"] = "for_accountant", "briefing note" + (" + consultation offer" if not client else "")
     else:  # prospect / admin_question
         rec["draft"] = draft_reply(email, cls, client, passages, usage)
@@ -426,7 +462,8 @@ def process_email(email: dict, dry_run=True) -> dict:
         rec["fact_check"] = fact_check(rec["draft"], passages, client)
         if rec["fact_check"]["unsupported"]:
             flags.append("unsupported_facts")
-    rec["draft_client_version"] = client_version(rec["draft"])
+    rec["draft_with_sources"] = rec["draft"]          # audit copy, keeps [S1] tags
+    rec["draft"] = client_version(rec["draft"])       # what the reviewer edits and the client would receive
     if "low_confidence" in flags and rec["status"] == "awaiting_review":
         rec["status"] = "needs_human_triage"
 

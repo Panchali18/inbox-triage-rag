@@ -25,7 +25,8 @@ for tid in sys.argv[1:] or ["T01"]:
     print(f"  urgency   : {r['urgency']}  (expected {e['expected']['urgency']})")
     print(f"  client    : {(r['client'] or {}).get('client_id')}  (expected {e['expected']['client_id']})")
     print(f"  flags     : {r['flags']}")
-    print(f"  action    : {r['action']}  -> status {r['status']}, assigned to {r['assigned_to']}")
+    print(f"  action    : {r['action']}  -> status {r['status']}")
+    print(f"  routed to : {r['assigned_to']}  ({r.get('routing_reason')})")
     print(f"  retrieved : {[p['source'] for p in r['retrieved']]}")
     if r["checklist"]:
         print(f"  checklist : {r['checklist']}")

@@ -12,7 +12,24 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from pipeline.triage import process_email, MODEL_ID  # noqa: E402
+from pipeline.triage import process_email, MODEL_ID, PRACTICE_MANAGER, PARTNER_ON_DUTY  # noqa: E402
+
+CLIENTS = {c["client_id"]: c for c in json.loads((ROOT / "data/clients/clients.json").read_text(encoding="utf-8"))}
+
+
+def expected_assignee(exp):
+    """Who SHOULD get the email, from the expected labels and the agreed routing table (US-18)."""
+    acc = CLIENTS[exp["client_id"]]["assigned_accountant"] if exp["client_id"] else None
+    t = exp["type"]
+    if exp["injection_flag"]:
+        return PRACTICE_MANAGER
+    if t == "spam_or_supplier":
+        return None
+    if t in ("prospect", "admin_question"):
+        return PRACTICE_MANAGER
+    if t == "documents_sent":
+        return acc or PRACTICE_MANAGER
+    return acc or PARTNER_ON_DUTY
 
 emails = json.loads((ROOT / "data/test-emails/test_emails.json").read_text(encoding="utf-8"))
 if len(sys.argv) > 1:
@@ -52,6 +69,9 @@ cl = [x for x in ok if x["expected"]["checklist_matches"]]
 cl_ok = [x for x in cl if x["result"]["checklist"]
          and sorted(x["result"]["checklist"]["matched"]) == sorted(x["expected"]["checklist_matches"]["matched"])
          and sorted(x["result"]["checklist"]["still_outstanding"]) == sorted(x["expected"]["checklist_matches"]["still_outstanding"])]
+route_ok = [x for x in ok if x["result"].get("assigned_to") == expected_assignee(x["expected"])]
+route_bad = [f"| {x['id']} | {expected_assignee(x['expected'])} | {x['result'].get('assigned_to')} | "
+             f"{x['result'].get('routing_reason','')} |" for x in ok if x not in route_ok]
 drafts = [x for x in ok if x["result"]["draft"]]
 fc = [x for x in ok if x["result"].get("fact_check")]
 unsupported = [(x["id"], f) for x in fc for f in x["result"]["fact_check"]["unsupported"]]
@@ -80,6 +100,7 @@ Model: `{MODEL_ID}`. Emails run: {len(results)} ({len(results) - len(ok)} errors
 | Metric | Result | Target |
 |---|---|---|
 | Classification accuracy | {pct(len(cls_ok), len(ok))} | at least 90% |
+| **Routing accuracy (right person's mailbox)** | {pct(len(route_ok), len(ok))} | at least 90% |
 | Urgent-item recall | {pct(len(urgent_ok), len(urgent))} | 100% |
 | False urgent (non-urgent marked urgent) | {len(false_urgent)} {[x['id'] for x in false_urgent]} | 0 |
 | Advice detection recall | {pct(len(advice_ok), len(advice))} | 100% |
@@ -103,6 +124,12 @@ Model: `{MODEL_ID}`. Emails run: {len(results)} ({len(results) - len(ok)} errors
 | ID | Expected | Got | Model's reason |
 |---|---|---|---|
 {chr(10).join(misclassified) or '| - | - | - | - |'}
+
+## Routing mismatches
+
+| ID | Expected assignee | Got | Rule applied |
+|---|---|---|---|
+{chr(10).join(route_bad) or '| - | - | - | - |'}
 
 ## Retrieval misses
 

@@ -103,3 +103,64 @@ Status chip colours:
 - rejected: dark grey
 
 Handle loading and empty states ("No emails yet — click New email or load an example").
+
+---
+
+# Version 2: follow-up prompt (redesign, US-18 to US-20)
+
+Send this as a follow-up in the same Lovable project, after the backend update.
+
+---
+
+Please redesign the app around how a shared inbox works. Every email lands in the **Shared inbox**. The AI triages it and routes it to one person's mailbox, and that person reviews it. Keep the existing API, colours and style.
+
+**1. Mailbox selector (top-left, above the queue tabs).**
+A dropdown, "Mailbox", with these options:
+- **Shared inbox** (all emails, the default)
+- Sinéad Kehoe (Practice Manager)
+- Ciarán Doyle (Accountant)
+- Niamh Rowe (Accountant)
+- Declan Furlong (Partner)
+- Aoife Gallagher (Partner)
+
+Selecting a person filters the queue to records where `assigned_to` equals that name. Show a count next to each option. Records where `assigned_to` is null are filed and appear only in the Filed tab of the Shared inbox. Remember the last selection in localStorage, inside a try/catch.
+
+**2. Queue row:** add a small "→ {assigned_to}" label (or "Filed"), so the Shared inbox shows where each email went.
+
+**3. Detail panel layout:** a two-column layout on wide screens.
+
+- **Main column, in this order:**
+  1. **Email:** from, subject, body and attachment chips.
+  2. **Routing line:** "Routed to **{assigned_to}**" with `routing_reason` in small muted text underneath. Show urgency and any deadline (`classification.extracted.deadline`) in red if present. Show the type as a chip.
+  3. **Warnings, only if there are any:**
+     - For each item in `fact_check.unsupported`, a red alert: "**{item}** isn't in any of the firm's documents. Check before approving."
+     - For each item in `fact_check.calculated`, an amber alert: "**{item}** was calculated by the AI. Check the maths."
+     - Plain-English alerts for these flags:
+       - **injection:** "This email tried to give instructions to the system. No action was taken."
+       - **phishing:** "Looks like phishing. Don't click links."
+       - **low_confidence:** "The AI wasn't sure how to classify this. Please check."
+       - **guardrail:** "The safety filter blocked the draft."
+     - If there are no warnings, show **nothing**: no "all clear" box, no list of supported facts.
+  4. **Draft reply** (if `draft` exists): show it as a **clean email**. The `draft` field no longer contains any [S1] tags, so render it as plain text with line breaks and remove the S-badge rendering. Keep Edit, Save edit & approve, Approve and Reject, and the 409 override dialog.
+  5. **Briefing note** (if present), in the muted "Internal: not for the client" box.
+  6. **Checklist** (if present), as before.
+  7. **Sources:** a **collapsed** section labelled "Sources used (n)" at the very bottom, closed by default. Inside, for each `retrieved` item: a friendly file name, the score and the `snippet` text in a small quote block. Add the revenue.ie link and the CC BY 4.0 line where `url` exists.
+  8. History timeline and the cost/latency footer, as before.
+
+- **Side column: "Client"**
+  - If `client` exists, show a card with:
+    - the name
+    - business_name or business_activity
+    - client_type, as "Sole trader" or "Company"
+    - services, as small chips
+    - "Accountant: {assigned_accountant}"
+    - "Partner: {partner}"
+    - "Onboarding in progress" in amber if `onboarding_status` is "in_progress"
+    - **"Outstanding"**: the `client.outstanding` list in amber, or "Nothing outstanding" in green
+  - If `client` is null: "**Not a client.** Unknown sender ({from_email})".
+  - Below the card, **"Previous emails from this sender"**: call `GET /emails?from_email={from_email}` and show each result **except the current one**, with date, subject, type chip and status chip. Clicking one opens it. If there are none: "No previous emails."
+  - Don't add any AI-written explanations or summaries here.
+
+**4. Header stats:** add "Avg time to decision". For records with a history event of approve, edit or reject, take the time between `received_at` and that event's `at`, and show the average in minutes. Keep the other stats.
+
+On narrow screens, the side column moves above the draft.
