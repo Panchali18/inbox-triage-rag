@@ -155,5 +155,23 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - CloudShell is a signed-in command line inside the AWS console. It can clone the GitHub repo and run a script with no local setup.
 - Keeping data and loader scripts in the repo makes the AWS setup repeatable. It's the first step towards infrastructure as code.
 
+- Wrote 40 labelled test emails in `data/test-emails/test_emails.json`, each with its expected type, urgency, client, advice and injection flags, expected sources and checklist matches. The mix:
+  - 7 prospects
+  - 9 admin questions, including the injection email
+  - 7 advice questions, 3 of them disguised
+  - 7 documents emails
+  - 6 Revenue or penalty emails
+  - 4 spam or supplier emails, including Revenue-themed phishing
+- A script cross-checked every test email against the client table and the knowledge base files: correct client IDs, sources that exist, and checklist codes that are really outstanding. It found 0 problems.
+
+### Decided (test set)
+- Applied the recommended default for OQ-3 (multi-intent emails): one primary type plus flags. T29 (unclear documents plus an advice question) tests it.
+- Built in deliberate tricky pairs: general information against personal advice (T15/T19), a routine Revenue document against penalties (T35), Revenue phishing (T38), and an identity-check trap (T28).
+
+### Learned (test set)
+- A test set is only useful if the expected answers are written down before the system exists. Otherwise it's tempting to accept whatever the system does.
+- Cross-checking synthetic data with a script catches inconsistencies a human review would miss.
+
 ### Next
-- Write the 40 synthetic test emails.
+- Review the test emails.
+- Week 2: start the Lambda pipeline (classify and extract first).

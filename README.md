@@ -4,7 +4,7 @@
 
 An AI pipeline that triages the shared inbox of a small accounting practice. It classifies each email, looks up the sender, retrieves the relevant firm policy and Revenue guidance, and drafts a grounded reply for a human to approve. Advice questions always go to an accountant.
 
-> **Status: in progress.** Week 1 (data and knowledge base) is complete. Week 2 (Lambda, API, guardrails and front end) has not started. Close date: Friday 6 November 2026. See [build-log.md](build-log.md) for progress, decisions and learnings.
+> **Status: in progress.** Week 1 (account checks, synthetic data, knowledge base, client table and test set) is complete. Week 2 (Lambda, API, guardrails and front end) has not started. Close date: Friday 6 November 2026. See [build-log.md](build-log.md) for progress, decisions and learnings.
 
 ---
 
@@ -79,6 +79,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | `data/kb/firm/` | 4 synthetic firm documents: fees, engagement terms, checklists, FAQ |
 | `data/kb/past-replies/` | 20 synthetic past replies |
 | `data/kb/revenue/` | 9 revenue.ie pages, saved as text with attribution |
+| `data/test-emails/` | 40 labelled test emails for the evaluation |
 | `data/clients/clients.json` | 15 synthetic clients for the DynamoDB lookup |
 | `scripts/load_clients.py` | Loads `clients.json` into DynamoDB (run in AWS CloudShell) |
 | `scripts/build_kb_upload.py` | Builds `kb-upload/`: clean text plus `.metadata.json` files |
