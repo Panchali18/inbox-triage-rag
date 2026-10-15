@@ -105,7 +105,11 @@ What I built at each step, the decisions I made and why, and what I learned alon
   - S3 Vectors, quick create
   - default parsing and chunking
   - deletion policy DELETE
-- **First sync: in progress.**
+- First sync completed.
+- **Tested retrieval in the console, and found a data design problem.** Every file started with the same "Synthetic data" banner or Revenue credit line, followed by a header table. The search results were dominated by this repeated boilerplate:
+  - "How much does a tax return cost?" did find the right files (the carpenter quote and the fee guide), but the passages shown were mostly banner text.
+  - "When is the self-assessment return due?" returned three Revenue passages that all showed only the identical credit line.
+- **Fix:** added `scripts/build_kb_upload.py`. It builds a clean `kb-upload/` folder with the text only, and moves the labels into a `.metadata.json` file next to each document. The labels are source type, category, date, and for Revenue pages the URL, credit line and save date. Past replies keep the client's question as text, because it helps match new emails to similar past ones. The GitHub copies in `data/kb/` keep their banners and attribution for human readers.
 
 ### Decided
 - **Global bucket namespace,** not the newer account-regional namespace, because I couldn't confirm that Bedrock Knowledge Bases support the new option yet.
@@ -118,8 +122,10 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - Public sector content isn't automatically free to reuse. Check the licence first. Revenue's licence covers the text but not its logo.
 - An AI web-reading tool can return summaries rather than exact text. For a knowledge base, save the source yourself and check the copy word by word.
 - The console's "Quick create" text says it creates OpenSearch Serverless, even after S3 Vectors is selected in the dropdown below. Always confirm the vector store on the review page before creating.
+- **Boilerplate hurts retrieval.** Text repeated across many documents, such as disclaimers, licence lines and header tables, gets embedded with every chunk. It makes different documents look similar and fills the results with noise. Keep chunk text to real content and put labels in metadata. Metadata also lets you filter searches, for example only Revenue pages for a deadline question.
+- "Retrieval only" testing shows raw passages, not answers. It's the right way to check search quality before a model is added on top.
 - RAG and lookup do different jobs. RAG finds relevant passages in documents. Lookup returns exact facts about a client. Mixing them up leads to wrong answers about who someone is or what they owe.
 
 ### Next
-- Confirm the sync completed, and test retrieval in the console with a few questions.
+- Replace the bucket contents with `kb-upload/`, re-sync, and repeat the three retrieval tests.
 - Load the client table into DynamoDB.
