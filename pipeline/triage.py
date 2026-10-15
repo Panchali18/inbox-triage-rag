@@ -320,7 +320,8 @@ FACT_PATTERNS = [
     re.compile(r"\b\d+(?:\.\d+)?\s?%"),
     re.compile(rf"\b\d{{1,2}}(?:st|nd|rd|th)?\s+(?:{MONTHS})\b", re.I),
     re.compile(rf"\b(?:{MONTHS})\s+\d{{1,2}}\b", re.I),
-    re.compile(r"\b\d+\s+working days\b", re.I),
+    re.compile(r"\b\d+\s+(?:working\s+)?days\b", re.I),
+    re.compile(r"\b\d+-minute\b", re.I),
 ]
 
 
@@ -336,7 +337,8 @@ def fact_check(draft: str, passages, client) -> dict:
     supported, calculated, unsupported = [], [], []
     for pat in FACT_PATTERNS:
         for f in set(pat.findall(draft)):
-            if norm(f) in corpus_n:
+            alt = re.sub(r"(\d+)-minute", r"\1minutes", norm(f))
+            if norm(f) in corpus_n or alt in corpus_n:
                 supported.append(f)
             elif f.startswith("€") and any(abs(_num(f) - (a + k * b)) < 0.01
                                            for a in src_amounts for b in src_amounts for k in range(1, 11)):
