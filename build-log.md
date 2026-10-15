@@ -62,10 +62,23 @@ What I did at each step, what I decided, and what I learned.
   - 1 advice question redirected to a consultation
 - Every fee, deadline and promise in the replies comes from the four firm documents, so the fact check has a consistent source of truth. No reply gives tax advice or states a Revenue deadline.
 
+- Checked Revenue's reuse terms. The Public Sector Information Licence allows reuse under the CC BY 4.0 standard, on these conditions:
+  - Credit Revenue with the exact attribution statement.
+  - Use no logos.
+  - Don't imply Revenue endorses the project.
+  - Store no personal information.
+
+  I added these to the scope (assumption A4), along with a rule: if no source answers a question, the draft says so and never guesses.
+- Saved 9 revenue.ie pages as text in `data/kb/revenue/`. They cover self-assessment deadlines, preliminary tax, registration, VAT thresholds and Corporation Tax. Each file carries the attribution, the source URL and the date saved. I compared each file word by word with the PDF I'd saved.
+- Left out allowable expenses on purpose, because Revenue covers them only in long technical manuals and expense questions go to an accountant.
+
 ### Learned
 - Check that a fictional company name doesn't match a real business before publishing it.
 - Synthetic data needs its own consistency check. One reply was dated after the deadline it asked the client to meet, and I had to correct it.
+- Public sector content isn't automatically free to reuse. Check the licence first. Revenue's licence covers the text but not its logo, so I store the text only, not the PDFs.
+- An AI web-reading tool can return summaries rather than exact text. For a knowledge base, save the source yourself and check the copy word by word.
 
 ### Next
-- Select and save the Revenue.ie pages.
+- Create the client lookup data (about 12 fictional clients) for DynamoDB.
+- Create the S3 bucket and Knowledge Base, and upload the documents. Don't upload the README files.
 - Activate `Project` as a cost allocation tag after the first tagged resource exists.
