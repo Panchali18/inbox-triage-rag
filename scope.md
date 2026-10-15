@@ -72,6 +72,8 @@ As a triage reviewer, I want a draft reply grounded in firm documents so that I 
 - AC2: For prospects, the draft requests onboarding documents from the onboarding checklist and makes no statement about AML verification outcomes.
 - AC3: The draft contains no tax advice (enforced by US-11).
 - AC4: The draft goes through the fact check (US-10) before it reaches the queue.
+- AC5: If no retrieved source answers the question, the draft says so. It points the sender to revenue.ie, or offers a call, and never guesses.
+- AC6: Any Revenue fact in a draft (a date, threshold or rate) cites the revenue.ie page and the date it was saved, and suggests checking revenue.ie for the current position.
 
 **US-07 Route an advice question**
 As an assigned accountant, I want advice questions sent to me with the relevant guidance so that a qualified person answers them.
@@ -162,7 +164,12 @@ As the builder, I want costs capped and resources tagged so that the project doe
 - A1: The free plan allows Bedrock model invocation, Knowledge Bases, S3 Vectors, Lambda, API Gateway and DynamoDB. This is verified in the step-one checks.
 - A2: All synthetic data is drafted by Claude and reviewed by me before use.
 - A3: Each email has one primary type; secondary signals are captured as flags (for example `contains_advice_question` on a documents email).
-- A4: Revenue.ie pages are public information, used with attribution and links. No content is presented as the firm's own advice.
+- A4: Revenue.ie content is reused under Revenue's Public Sector Information Licence (CC BY 4.0 standard). Conditions:
+  - Every saved page and the README carry the statement "Information provided courtesy of the Revenue Commissioners under a Creative Commons Attribution 4.0 International (CC BY 4.0) licence", with a link to the licence.
+  - No Revenue logos, crests or official symbols are stored. Pages are saved as text only.
+  - Nothing suggests Revenue endorses or is connected to this project.
+  - Each page records its source URL and the date it was saved, because Revenue doesn't guarantee its pages are up to date.
+  - Revenue content is general guidance. It is never presented as the firm's own advice.
 - A5: The full pipeline finishes within API Gateway's 29-second limit. If not, processing becomes asynchronous: submit returns immediately and the queue polls.
 - A6: An API key visible in the browser is acceptable for a demo. It is protected by throttling and stated in the README as a limitation.
 - A7: Gemini free tier as the RAGAS judge is acceptable because all data is synthetic.
