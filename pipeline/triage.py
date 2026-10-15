@@ -325,6 +325,14 @@ FACT_PATTERNS = [
 ]
 
 
+SOURCE_TAG = re.compile(r"\s*(?:\[S\d+\])+")
+
+
+def client_version(text):
+    """The text a client would receive: source tags removed (they are for the reviewer only)."""
+    return re.sub(r" +([.,;:])", r"\1", SOURCE_TAG.sub("", text or "")).strip() if text else text
+
+
 def _num(s):
     return float(re.sub(r"[^\d.]", "", s) or 0)
 
@@ -418,6 +426,7 @@ def process_email(email: dict, dry_run=True) -> dict:
         rec["fact_check"] = fact_check(rec["draft"], passages, client)
         if rec["fact_check"]["unsupported"]:
             flags.append("unsupported_facts")
+    rec["draft_client_version"] = client_version(rec["draft"])
     if "low_confidence" in flags and rec["status"] == "awaiting_review":
         rec["status"] = "needs_human_triage"
 

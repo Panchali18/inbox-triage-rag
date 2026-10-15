@@ -19,7 +19,7 @@ from pathlib import Path
 
 import boto3
 
-from pipeline.triage import process_email
+from pipeline.triage import client_version, process_email
 
 REGION = os.environ.get("AWS_REGION_NAME", "eu-north-1")
 EMAILS_TABLE = os.environ.get("EMAILS_TABLE", "inbox-triage-v1-emails")
@@ -121,9 +121,14 @@ def handler(event, context):
                                              "reason": body.get("reason"), "override": bool(body.get("override"))}]}
             expr = "SET #s = :s, history = list_append(if_not_exists(history, :empty), :h)"
             update[":empty"] = []
+            final = item.get("draft")
             if decision == "edit":
+                final = body.get("edited_draft", item.get("draft"))
                 expr += ", draft = :d, edited = :t"
-                update[":d"], update[":t"] = body.get("edited_draft", item.get("draft")), True
+                update[":d"], update[":t"] = final, True
+            if decision in ("approve", "edit"):
+                expr += ", final_client_text = :f"   # what would be sent: no source tags
+                update[":f"] = client_version(final)
             _emails.update_item(Key={"email_id": parts[1]}, UpdateExpression=expr,
                                 ExpressionAttributeNames={"#s": "status"}, ExpressionAttributeValues=_to_ddb(update))
             _log("decision", email_id=parts[1], decision=decision, override=bool(body.get("override")))
