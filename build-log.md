@@ -54,10 +54,18 @@ What I did at each step, what I decided, and what I learned.
   - The FAQ gives no Revenue deadlines, so deadline questions must be answered from the Revenue pages. This tests retrieval across both sources.
   - The €120 partner consultation answers OQ-4: an unknown sender asking for advice is offered a paid consultation, and a partner gets a briefing note.
 
+- Wrote 20 synthetic past replies in `data/kb/past-replies/`:
+  - 6 prospect quotes and onboarding
+  - 8 admin answers
+  - 4 document logs and chases
+  - 1 Revenue letter acknowledgement
+  - 1 advice question redirected to a consultation
+- Every fee, deadline and promise in the replies comes from the four firm documents, so the fact check has a consistent source of truth. No reply gives tax advice or states a Revenue deadline.
+
 ### Learned
 - Check that a fictional company name doesn't match a real business before publishing it.
+- Synthetic data needs its own consistency check. One reply was dated after the deadline it asked the client to meet, and I had to correct it.
 
 ### Next
-- Write 20 synthetic past replies.
 - Select and save the Revenue.ie pages.
 - Activate `Project` as a cost allocation tag after the first tagged resource exists.
