@@ -54,8 +54,8 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | Document storage | Amazon S3 | ✅ |
 | Main model | Amazon Nova 2 Lite (EU cross-region inference profile) | ✅ Tested in the console |
 | Client lookup | Amazon DynamoDB (`inbox-triage-v1-clients`, 15 clients) | ✅ Loaded |
-| Pipeline | AWS Lambda (Python) | Planned, week 2 |
-| API | Amazon API Gateway with an API key | Planned, week 2 |
+| Pipeline | AWS Lambda (Python 3.12, arm64), `inbox-triage-v1-api` | ✅ Deployed |
+| API | Amazon API Gateway REST API with an API key and usage plan (2 req/s, 300/day) | ✅ Deployed |
 | Safety | Amazon Bedrock Guardrails (no tax advice, PII filters) | Planned, week 2 |
 | Front end | Lovable (React) | Planned, week 2 |
 | Evaluation | RAGAS, plus a custom test set of 40 emails | Planned, week 3 |
@@ -124,7 +124,10 @@ This demo uses synthetic data only. A real practice would also need:
 | S3 bucket | `inbox-triage-v1-kb-docs-pd` |
 | Bedrock Knowledge Base | `inbox-triage-v1-kb` (data source `inbox-triage-v1-kb-docs`) |
 | S3 vector bucket and index | Created automatically by the Knowledge Base quick create |
-| DynamoDB table | `inbox-triage-v1-clients` |
+| DynamoDB tables | `inbox-triage-v1-clients`, `inbox-triage-v1-emails` |
+| Lambda function | `inbox-triage-v1-api` |
+| IAM role | `inbox-triage-v1-lambda-role` (inline policy `inbox-triage-v1-access`) |
+| API Gateway | REST API `inbox-triage-v1-api` (stage `prod`), usage plan `inbox-triage-v1-plan`, API key `inbox-triage-v1-key` |
 | IAM role | `AmazonBedrockExecutionRoleForKnowledgeBase_vg70k` |
 | AWS Budget | `account-monthly-5usd` (account-wide, kept after clean-up) |
 

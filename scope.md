@@ -13,8 +13,10 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 | 1 | Synthetic client table (15 clients) loaded into DynamoDB | ✅ Done (15 Oct) |
 | 1 | Knowledge Base set up and tested in the console | ✅ Done (15 Oct) |
 | 1 | 40 synthetic test emails with expected results | ✅ Drafted (15 Oct), awaiting review |
-| 2 | Lambda pipeline, API, guardrails, Lovable front end | ⏳ Not started |
-| 3 | Evaluation, RAG vs prompt-stuffing comparison, README, recording, post | ⏳ Not started |
+| 2 | Lambda pipeline and API | ✅ Deployed (15 Oct) |
+| 2 | Guardrails, Lovable front end | ⏳ Next |
+| 3 | Evaluation | ✅ Runs 1 and 2 done (15 Oct) |
+| 3 | RAG vs prompt-stuffing comparison, README, recording, post | ⏳ Not started |
 
 ## Personas
 
@@ -195,7 +197,7 @@ As the builder, I want costs capped and resources tagged so that the project doe
 - **OQ-3 Multi-intent emails.** *(Test set uses the recommended default: one primary type plus flags. Confirm.)* For example, documents sent plus an advice question. Is "primary type + flags, and an advice flag always creates a briefing note" right?
 - ~~**OQ-4 Unknown sender asking for advice.**~~ **Decided:** reply offering the €120 partner consultation (as listed in the fee guide), and send a briefing note to a partner.
 - ~~**OQ-5 Demo lifetime.**~~ **Decided:** the demo stays live until 10 April 2027 (free-plan end), and resources are tagged `DeleteAfter = 2027-04-10`. The build itself still closes on 6 November 2026.
-- **OQ-6 Fact-check method.** Should the check be a second model call (simpler), or rule-based extraction of numbers and dates compared against sources (cheaper and more predictable)? Possibly both.
+- ~~**OQ-6 Fact-check method.**~~ **Decided:** rule-based (extract € / % / dates / working days and match them against the sources; derivable sums are marked "calculated" for a human). Original question: Should the check be a second model call (simpler), or rule-based extraction of numbers and dates compared against sources (cheaper and more predictable)? Possibly both.
 - ~~**OQ-7 Past replies.**~~ **Decided:** 20 synthetic past replies (down from about 50).
 
 ## Out of scope (v1)

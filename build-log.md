@@ -172,6 +172,40 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - A test set is only useful if the expected answers are written down before the system exists. Otherwise it's tempting to accept whatever the system does.
 - Cross-checking synthetic data with a script catches inconsistencies a human review would miss.
 
+- Built the pipeline in `pipeline/triage.py`. It classifies and extracts with Nova, looks up the sender in DynamoDB, retrieves from the knowledge base, acts by type, and runs a rule-based fact check. It's tested from CloudShell with `scripts/run_one.py` and `scripts/run_eval.py`.
+- **Evaluation runs 1 and 2** on all 40 emails (see `eval/run-1-baseline.md` and `eval/run-2-after-fixes.md`):
+  - Classification went from 88% to 90%.
+  - Urgent recall, advice detection, client lookup and injection catching were all 100%.
+  - Unsupported facts went from 1 to 0, and checklist matching from 6/7 to 7/7.
+  - Each email cost about $0.0013 and took about 3 seconds.
+- **Deployed the API** with one script, `scripts/deploy.sh`. It created:
+  - the emails table
+  - a least-privilege IAM role
+  - the Lambda function
+  - a REST API with an API key and a usage plan of 2 requests a second and 300 a day
+
+  CORS preflight is allowed without a key.
+
+### Decided (pipeline)
+- **Fact check method (OQ-6): rule-based.** It extracts every €, %, date and "N working days" and looks for each in the retrieved sources. It's free, predictable and explainable. Amounts that can be derived arithmetically are labelled "calculated" for a human to check.
+- **Templates where the answer is fixed:** document acknowledgements and the consultation offer are templates. The consultation fee is read from the fee guide with a metadata-filtered search. The AI writes only where the wording genuinely varies.
+- **Rules enforced in code, not only in prompts:**
+  - advice never gets a client answer
+  - an injection flag stops all actions
+  - only the documents step updates records, and only from file names
+  - approving a draft with unsupported facts needs an edit or an explicit override
+- **The EU inference profile, not global,** so processing stays in the EU.
+
+### Learned (pipeline)
+- The evaluation found problems a demo would have hidden:
+  - a newsletter got a reply drafted
+  - a client's files were ignored when they also asked a question
+  - a consultation was quoted at €150 instead of €120
+  - two prices were added across different billing periods (€104)
+- Some "errors" were really label ambiguity. I kept the original labels rather than moving the goalposts after seeing results, and explained each one instead.
+- One retrieval metric was measuring the wrong thing: advice emails never get a drafted reply, so whether they retrieve the policy document doesn't matter. I added a second metric for emails that do get a draft, and kept the original alongside it.
+- The model copied a specific appointment day from a past reply. Past replies need an explicit "tone and structure only" rule.
+
 ### Next
-- Review the test emails.
-- Week 2: start the Lambda pipeline (classify and extract first).
+- Test the live API, then build the Lovable front end.
+- Add the Bedrock Guardrail.
