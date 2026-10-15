@@ -382,9 +382,12 @@ def _num(s):
     return float(re.sub(r"[^\d.]", "", s) or 0)
 
 
-def fact_check(draft: str, passages, client) -> dict:
-    corpus = " ".join(p["text"] for p in passages) + " " + json.dumps(client or {}, default=str)
+def fact_check(draft: str, passages, client, email=None) -> dict:
+    # Facts the sender stated themselves (e.g. "turnover around €600k") are allowed to be repeated back.
+    sender_text = f"{(email or {}).get('subject', '')} {(email or {}).get('body', '')}"
+    corpus = " ".join(p["text"] for p in passages) + " " + json.dumps(client or {}, default=str) + " " + sender_text
     norm = lambda s: re.sub(r"[\s,]", "", re.sub(r"(\d)(st|nd|rd|th)\b", r"\1", s.lower()))
+    corpus = re.sub(r"€\s?(\d+)k\b", lambda m: f"€{int(m.group(1)) * 1000:,}", corpus, flags=re.I)
     corpus_n = norm(corpus)
     src_amounts = {_num(a) for a in FACT_PATTERNS[0].findall(corpus)}
     supported, calculated, unsupported = [], [], []
@@ -470,7 +473,7 @@ def process_email(email: dict, dry_run=True) -> dict:
         rec["draft"], rec["status"] = None, "blocked_by_guardrail"
         flags.append("guardrail")
     if rec["draft"] and not rec["action"].startswith("documents logged"):
-        rec["fact_check"] = fact_check(rec["draft"], passages, client)
+        rec["fact_check"] = fact_check(rec["draft"], passages, client, email)
         if rec["fact_check"]["unsupported"]:
             flags.append("unsupported_facts")
     rec["draft_with_sources"] = rec["draft"]          # audit copy, keeps [S1] tags
