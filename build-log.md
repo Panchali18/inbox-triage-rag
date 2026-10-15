@@ -126,6 +126,21 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - "Retrieval only" testing shows raw passages, not answers. It's the right way to check search quality before a model is added on top.
 - RAG and lookup do different jobs. RAG finds relevant passages in documents. Lookup returns exact facts about a client. Mixing them up leads to wrong answers about who someone is or what they owe.
 
+- Replaced the bucket contents with the 66 files from `kb-upload/` (33 documents and 33 metadata files) and re-synced.
+- **Retrieval tests after the fix (top 5, retrieval only):**
+
+  | Question | Result |
+  |---|---|
+  | How much does a sole trader tax return cost? | Carpenter quote #1, fee guide #2, landlord quote #4 |
+  | When is the self-assessment tax return due? | Revenue "Pay and file system" #2 (31 Oct / 18 Nov). #1 is a related Revenue page. Not top-ranked, but within the top 5 that drafting will use. |
+  | Do you need my ROS password? | Past reply to Fiona #1, FAQ in the top 5 |
+
+- **First end-to-end answer** (retrieval with answer generation, using the EU Nova 2 Lite inference profile). Asked "I'm a carpenter just starting out, how much would you charge for my tax return?", it answered from €450, or from €750 with bookkeeping, excluding VAT, and offered the free 20-minute discovery call. Every figure had a citation, and every figure matched the fee guide.
+
+### Learned (testing)
+- Retrieval alone shows the evidence. Generation turns it into an answer. Test retrieval first: if the evidence is wrong, the answer will be wrong however good the model is.
+- Past replies act as worked examples. Keeping the client's question in each one helps a new email match a similar past email.
+- The console answer reads like a chatbot ("Based on the information provided…"). The Lambda prompt will need to shape it into an email from the firm.
+
 ### Next
-- Replace the bucket contents with `kb-upload/`, re-sync, and repeat the three retrieval tests.
 - Load the client table into DynamoDB.
