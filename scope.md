@@ -18,7 +18,8 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 | 2 | Routing rules, mailbox views, review-screen redesign (US-18 to US-20) | ✅ Done (15 Oct). Secure Lovable version pending credits. |
 | 2 | Bedrock Guardrail (denied topic, PII masking) | ✅ Done and tuned (15 Oct) |
 | 3 | Evaluation | ✅ Runs 1–5 done (15 Oct) |
-| 3 | RAG vs prompt-stuffing comparison, README, recording, post | ⏳ Not started |
+| 3 | RAG vs prompt-stuffing comparison | ⏳ Code ready, to run next session |
+| 3 | Final README, recording, LinkedIn post | ⏳ Not started (story bank ready in `docs/`) |
 
 ## Personas
 

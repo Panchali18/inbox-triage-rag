@@ -4,7 +4,7 @@
 
 An AI pipeline that triages the shared inbox of a small accounting practice. It classifies each email, looks up the sender, retrieves the relevant firm policy and Revenue guidance, and drafts a grounded reply for a human to approve. Advice questions always go to an accountant.
 
-> **Status: in progress.** Week 1 (account checks, synthetic data, knowledge base, client table and test set) is complete. Week 2 (Lambda, API, guardrails and front end) has not started. Close date: Friday 6 November 2026. See [build-log.md](build-log.md) for progress, decisions and learnings.
+> **Status: in progress (paused 15 Oct 2026).** Built and evaluated: the knowledge base, pipeline, API, guardrail and front end. Remaining: the RAG vs prompt-stuffing comparison, the secure front-end version, the recording and the posts. Close date: Friday 6 November 2026. See [build-log.md](build-log.md) for progress, decisions and learnings.
 
 ---
 

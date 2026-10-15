@@ -296,8 +296,24 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - Drafts to senders who write in simple English (T05) use fairly formal language. A "match the sender's language level" rule would be kinder.
 - T06 (company payroll quote): the model keeps combining prices, flagged amber every time. It's a candidate for a template quote.
 
-### Next
-- Update the Lambda with the latest code (year check, attribution rule) and run a quick in-app check.
-- Finish the secure Lovable version (key server-side) when credits reset, rotate the API key, and fix the small front-end items: checklist names, advice banner wording.
-- RAG vs prompt-stuffing comparison (US-16): code ready (`--stuffing` mode, `scripts/compare_rag_stuffing.py`), to be run.
-- Screen recording, LinkedIn posts (see `docs/linkedin-story-bank.md`).
+### Parked (Thursday 15 October 2026, 13:50)
+Work paused until the weekend. Everything is on GitHub. AWS resources stay running: they're pay-per-use and cost almost nothing when idle.
+
+### Next session: resume checklist
+1. **In CloudShell** (`cd ~/inbox-triage-rag`, then `git pull`):
+   - `bash scripts/update_lambda.sh` puts the latest pipeline code live. The guardrail setting is kept.
+   - Re-create the guardrail ID: `GID=$(aws bedrock list-guardrails --region eu-north-1 --query "guardrails[?name=='inbox-triage-v1-guardrail'].id | [0]" --output text)`
+2. **RAG vs prompt-stuffing (US-16):**
+   - `GUARDRAIL_ID=$GID python3 scripts/run_eval.py`
+   - `GUARDRAIL_ID=$GID python3 scripts/run_eval.py --stuffing`
+   - `python3 scripts/compare_rag_stuffing.py`
+
+   Then record the results in `eval/` and update story 13 in `docs/linkedin-story-bank.md`.
+3. **Secure Lovable version,** once credits reset:
+   - `bash scripts/rotate_api_key.sh` (copy the new key; don't paste it in any chat)
+   - in Lovable, type "continue" and paste the new key into the secure form
+   - fix the small items: checklist names, advice banner wording
+4. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31).
+5. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
+
+Close date: Friday 6 November 2026.
