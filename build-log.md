@@ -142,5 +142,8 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - Past replies act as worked examples. Keeping the client's question in each one helps a new email match a similar past email.
 - The console answer reads like a chatbot ("Based on the information provided…"). The Lambda prompt will need to shape it into an email from the firm.
 
+- Rewrote the repo README with the problem, design, architecture (built vs planned), repo layout, data and licence notes, GDPR note, cost controls, an AWS clean-up list and limitations. Added a progress table to the scope.
+
 ### Next
 - Load the client table into DynamoDB.
+- Write the 40 synthetic test emails.

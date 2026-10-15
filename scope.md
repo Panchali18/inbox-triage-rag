@@ -4,6 +4,18 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 
 **Close date:** Friday 6 November 2026. Anything unfinished goes to the v2 list.
 
+## Progress
+
+| Week | Item | Status |
+|---|---|---|
+| 1 | Account checks, budget, tags | ✅ Done (14 Oct) |
+| 1 | Synthetic knowledge base: firm documents, 20 past replies, 9 Revenue pages | ✅ Done (15 Oct) |
+| 1 | Synthetic client table (15 clients) | ✅ Written. Loading into DynamoDB is next. |
+| 1 | Knowledge Base set up and tested in the console | ✅ Done (15 Oct) |
+| 1 | 40 synthetic test emails | ⏳ Not started |
+| 2 | Lambda pipeline, API, guardrails, Lovable front end | ⏳ Not started |
+| 3 | Evaluation, RAG vs prompt-stuffing comparison, README, recording, post | ⏳ Not started |
+
 ## Personas
 
 - **Triage reviewer** — staff member who works the shared inbox queue.
@@ -16,7 +28,9 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 |---|---|
 | Region | **eu-north-1 (Stockholm)**. The AWS project is locked to this region, so the brief's eu-west-1 is not available. Data still stays in the EU; the README notes that a real deployment would choose Ireland. |
 | Vector store | Bedrock Knowledge Base on S3 Vectors, eu-north-1 |
-| Models | Nova Lite/Micro (or small Claude); EU cross-region inference profile acceptable, noted in README |
+| Models | **Amazon Nova 2 Lite via the EU cross-region inference profile** (tested). Claude isn't in the Stockholm catalogue, so a small Claude model via the EU profile is the fallback. |
+| Embeddings | Titan Text Embeddings V2, float, 1024 dimensions |
+| Knowledge base content | 4 firm documents, 20 past replies and 9 Revenue pages, uploaded as clean text with `.metadata.json` labels (`kb-upload/`) |
 | Client lookup | DynamoDB table, called as a tool (not RAG) |
 | Queue / email state | DynamoDB table |
 | API | API Gateway (REST) with API key and usage-plan throttling |
