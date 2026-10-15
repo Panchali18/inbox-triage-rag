@@ -249,5 +249,4 @@ What I built at each step, the decisions I made and why, and what I learned alon
 ### Next
 - Update the Lambda, reset the demo, and re-run the evaluation (run 3) with routing accuracy.
 - Finish the secure Lovable version (key server-side) and rotate the API key.
-- Re-run the evaluation (run 3) with routing accuracy added.
 - Add the Bedrock Guardrail.
