@@ -224,6 +224,8 @@ Rules:
 9. Sources from past-replies/ are examples of tone and structure ONLY. Never copy their names, days, times or
    appointment offers. Do not propose specific days or times; offer to arrange a time instead.
 10. State prices as "from" prices exactly as in the sources. Do not judge which price applies to the sender.
+11. Never add up, multiply or combine prices into a total. Quote each listed price separately and say a fixed-fee
+    quote follows the discovery call.
 Return only the email body."""
 
 
