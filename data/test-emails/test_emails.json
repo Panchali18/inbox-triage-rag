@@ -390,7 +390,7 @@
     "from_email": "tariq.aziz@example.net",
     "from_name": "Tariq Aziz",
     "subject": "Do I need to register?",
-    "body": "Hi, I sell handmade jewellery online, about €30k a year. Do I need to register for VAT? Not a client yet.",
+    "body": "Hi,\n\nI sell handmade jewellery online, about €30k a year. Do I need to register for VAT?\n\nThanks,\nTariq",
     "attachments": [],
     "expected": {
       "type": "advice_question",
@@ -768,7 +768,7 @@
     "from_email": "p.lynch@example.net",
     "from_name": "Paula Lynch",
     "subject": "Revenue demand - can you help",
-    "body": "Hi, I'm not a client. I've received a demand from Revenue for €4,800 plus interest and need help fast. Can you represent me?",
+    "body": "Hi,\n\nI've received a demand from Revenue for €4,800 plus interest and I need help fast. Can you deal with Revenue for me?\n\nPaula Lynch",
     "attachments": [],
     "expected": {
       "type": "revenue_or_penalty",

@@ -231,7 +231,23 @@ What I built at each step, the decisions I made and why, and what I learned alon
 - A traceability feature (source tags) and a presentation choice (show them or not) are separate decisions. Keep the data, and choose the display for the user.
 - Routing was under-specified in the original scope. "Assigned accountant" isn't the right owner for admin work. Writing out the routing table exposed it.
 
+- **Implemented US-18 to US-20:** routing with a stated reason, a client card with outstanding items, sender history (`GET /emails?from_email=`), clean drafts (tagged copy kept for audit), source snippets, and routing accuracy in the evaluation.
+- **Front end, version 2:** the first Lovable account built the secure design (the key held server-side, with a proxy that only forwards to `/emails` and `/test-emails`), but ran out of free credits before the key could be added. A second account built the same design with the key in browser code (the accepted demo limitation) and is working. The secure version is to be finished when credits reset.
+- Added `scripts/reset_demo.sh` (clear emails, restore clients) and `scripts/rotate_api_key.sh` (replace the key, since it has been pasted in chats).
+
+### Found by testing in the app
+- **The client card disagreed with the reply.** The card showed items as outstanding that the documents reply said had arrived, because the card was captured before the email was processed. Fixed: the card shows the position after the email.
+- **Test emails gave away the answer.** T19 said "Not a client yet" and T33 said "I'm not a client". Real senders don't write that, and it hands the AI the classification the client lookup should establish. Both were rewritten.
+- **Routing ignored the advice flag.** An unknown sender asking "do I need to register for VAT?" was classified as a prospect with an advice flag, and routed to Sinéad instead of a partner. Fixed: any advice flag routes to the accountant, or to the partner on duty for unknown senders.
+- **The internal briefing note gave advice, with flawed reasoning.** It told the partner that the sender was "not required to register", quoting the €42,500 **services** threshold for someone selling **goods** (€85,000). Fixed: briefing notes quote the guidance and state the sender's facts, but never apply a rule or reach a conclusion. The judgement stays with the accountant.
+
+### Learned (testing in the app)
+- An internal note can still carry advice risk. If staff trust it, a wrong conclusion in it is as harmful as one in a client email.
+- Test data must sound like real senders. Phrases that label the email ("not a client yet") inflate the scores.
+- Looking at real outputs on screen catches problems that aggregate metrics don't. The evaluation passed these emails on type, but the routing and the note were wrong.
+
 ### Next
-- Implement US-18 to US-20: routing rules, mailbox views, the clean draft with exception-only warnings, and the client context panel. Then update the Lambda and the Lovable app.
+- Update the Lambda, reset the demo, and re-run the evaluation (run 3) with routing accuracy.
+- Finish the secure Lovable version (key server-side) and rotate the API key.
 - Re-run the evaluation (run 3) with routing accuracy added.
 - Add the Bedrock Guardrail.

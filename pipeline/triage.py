@@ -182,6 +182,8 @@ def route(email_type: str, flags: list, client) -> tuple:
         return None, "Spam, newsletter or supplier mail: filed"
     if "low_confidence" in flags:
         return PRACTICE_MANAGER, "Low classification confidence: manual triage by the practice manager"
+    if "advice" in flags and email_type in ("prospect", "admin_question", "advice_question"):
+        email_type = "advice_question"   # an advice question always goes to a qualified person
     if email_type in ("prospect", "admin_question"):
         return PRACTICE_MANAGER, "Prospects and admin questions are handled by the practice manager"
     if email_type == "documents_sent":
@@ -299,9 +301,14 @@ def consultation_offer(email, passages):
 
 BRIEFING_SYSTEM = f"""You write an internal briefing note for an accountant at Nore Valley Accountants.
 {UNTRUSTED}
-Write 3 to 6 short bullet points: what the sender is asking or reporting, any deadline, relevant facts from the
-client record, and up to two short QUOTES from the SOURCES that may help (with [S#] tags). Do not give advice
-yourself and do not draft a reply to the client. If an email mentions a deadline, put it first."""
+Write 3 to 5 short bullet points:
+- what the sender is asking or reporting, in neutral words, and any facts they state (turnover, dates, amounts);
+- any deadline (put it first if there is one);
+- relevant facts from the client record;
+- up to two short VERBATIM QUOTES from the SOURCES that the accountant may want to look at, with [S#] tags.
+Never state a conclusion about what applies to the sender (e.g. whether they must register, can claim, owe tax,
+or which threshold or rate applies). Never apply a rule to their facts. The accountant makes that judgement.
+Do not draft a reply to the client."""
 
 
 def briefing_note(email, cls, client, passages, usage):
