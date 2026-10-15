@@ -1,6 +1,6 @@
 # Lovable prompt (front end)
 
-**Version 1.** This is the prompt used to generate the first version of the front end in Lovable. A follow-up prompt for the agreed redesign (US-18 to US-20 in `scope.md`: routing, personal mailboxes, clean draft, client context panel) will be added below once it's written. The API key is replaced with a placeholder here. The real key goes only into the Lovable project.
+**Version 1 (superseded).** For a fresh build, use [`lovable-prompt-v2.md`](lovable-prompt-v2.md). This is the prompt used to generate the first version of the front end in Lovable. A follow-up prompt for the agreed redesign (US-18 to US-20 in `scope.md`: routing, personal mailboxes, clean draft, client context panel) will be added below once it's written. The API key is replaced with a placeholder here. The real key goes only into the Lovable project.
 
 ---
 
