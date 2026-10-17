@@ -1,7 +1,7 @@
 """US-15 AC4: RAGAS scores for the AI-written draft replies in the latest evaluation run.
 
 Run in AWS CloudShell from the repo folder, after scripts/run_eval.py:
-    pip install --user -q "ragas==0.2.15" "langchain-google-genai==2.1.5"
+    pip install -q "ragas==0.2.15" "langchain-google-genai==2.1.5"
     read -s GOOGLE_API_KEY && export GOOGLE_API_KEY      # type the key; it isn't shown or saved
     python3 scripts/run_ragas.py
 
