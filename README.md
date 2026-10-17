@@ -4,7 +4,7 @@
 
 An AI pipeline that triages the shared inbox of a small accounting practice. It classifies each email, looks up the sender, retrieves the relevant firm policy and Revenue guidance, and drafts a grounded reply for a human to approve. Advice questions always go to an accountant.
 
-> **Status: in progress.** Built and evaluated: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison. Remaining: an evaluation run on the latest changes, RAGAS scores, publishing the front end and the recording. See [build-log.md](build-log.md) for progress, decisions and learnings.
+> **Status: in progress.** Built and evaluated: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison. Remaining: publishing the front end and the recording. See [build-log.md](build-log.md) for progress, decisions and learnings.
 
 ---
 
@@ -61,7 +61,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | API | Amazon API Gateway REST API with an API key and usage plan (2 req/s, 300/day) | ✅ Deployed |
 | Safety | Amazon Bedrock Guardrails: denied topic "personal tax advice", PII masking (cards, IBAN, passwords, Irish PPSN), applied to drafts only | ✅ Live and tuned |
 | Front end | Lovable (React): shared inbox, personal mailboxes, clean draft, client context panel, suggested attachments | ✅ API key held server-side, never in the browser |
-| Evaluation | Custom test set of 40 labelled emails, 5 runs, plus a RAG vs prompt-stuffing comparison (see `eval/`) | ✅ Done |
+| Evaluation | Custom test set of 40 labelled emails (7 runs), a RAG vs prompt-stuffing comparison, and RAGAS faithfulness scores with Nova Pro as the judge (see `eval/`) | ✅ Done |
 | Observability | Amazon CloudWatch structured logs (type, routing, tokens, latency; no email bodies) | ✅ |
 
 **Region:** eu-north-1 (Stockholm). The AWS account is locked to this region. Data stays in the EU, which is the test that matters under GDPR. A real deployment for an Irish firm could choose eu-west-1 (Ireland).
@@ -103,7 +103,7 @@ The same 40 emails, model and safety layers. Only the source text differs: the t
 
 RAG was more accurate and 2.4× cheaper. At 33 documents, pasting everything still works; RAG's advantage grows with the size of the knowledge base. Details: [`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md).
 
-**Latest evaluation (run 6, after the reply improvements):** no regressions, no combined prices for the first time, and every prospect reply offers the next step. See [`eval/run-6-better-replies.md`](eval/run-6-better-replies.md). RAGAS scores are being checked; see [`eval/ragas-run-1.md`](eval/ragas-run-1.md).
+**Latest evaluation (run 6, after the reply improvements):** no regressions, no combined prices for the first time, and every prospect reply offers the next step. See [`eval/run-6-better-replies.md`](eval/run-6-better-replies.md). **RAGAS** (AI judge: Amazon Nova Pro): faithfulness **0.86**, with every prospect reply at 1.00. It also found two admin replies that invent a process or promise a meeting time, which the rule-based fact check can't see. See [`eval/ragas-run-2.md`](eval/ragas-run-2.md).
 
 Full results and what changed between runs: [`eval/`](eval/).
 

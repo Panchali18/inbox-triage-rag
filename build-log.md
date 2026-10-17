@@ -333,7 +333,11 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 **12. The next step fits the price.** Following a question about whether everyone needs a discovery call: the call is the fee guide's process for turning a "from" price into a fixed quote, so it stays for "from" prices. If every quoted price is fixed (such as the €60 bank letter), the reply invites the sender to reply to go ahead instead. For a sole trader's tax return, the wording is softer: "a quick, free 20-minute call to confirm your quote".
 
-**13. RAGAS judge sees the full context.** The judge now also gets the client record, the firm's name and signatory, and the sender's email, which the drafting model had too. The report lists the drafts that score below 0.80, so they can be read.
+**13. RAGAS, second run** ([`eval/ragas-run-2.md`](eval/ragas-run-2.md)). The judge now also gets the client record, the firm's name and signatory, and the sender's email, which the drafting model had too. Faithfulness rose from 0.71 to **0.86**:
+- Every prospect reply scored **1.00**.
+- **T11 dropped to 0.83:** the judge now catches the invented online-filing date that our fact check also flags.
+- **T13 (0.29) and T14 (0.17) are real findings.** The model invented a process ("send us the new account details") and promised a meeting "next week". Our fact check can't see these, because there are no amounts or dates in them.
+- T08 got no score (the judge's answer couldn't be read). Context relevance was still 1.00 everywhere.
 
 **Final checks (T01, T06, T11):**
 - **T01 (Liam) and T06 (Tom):** prices once, word for word, no totals, no "fee guide" wording, the discovery call included. The fee guide is suggested as an attachment, and "View" opens the PDF.
@@ -364,7 +368,8 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 ### Decided
 - **RAGAS judge: Nova Pro on Bedrock.** Gemini's free tier was too limited, and Claude isn't available on this free-plan account (see the table above).
-- **Don't publish RAGAS numbers until they're checked against the drafts.** The first run contradicted the rule-based fact check on T11.
+- **Don't publish RAGAS numbers until they're checked against the drafts.** The first run contradicted the rule-based fact check on T11; the second run, with the full context, agrees with it.
+- **Keep both checks.** The rule-based fact check is exact for amounts and dates; the AI judge catches invented processes and promises. Neither covers everything.
 - **Keep RAG.** It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
 - **The AI selects, code writes.** For anything that must be exact (prices, document names, checklists), the model chooses from a list and code produces the text. The model writes only the wording around it.
 - **Suggest, never attach.** The system suggests documents, but only a person decides what reaches a client.
@@ -387,13 +392,16 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **"Listed" isn't "available".** A model appearing in the inference-profile list doesn't mean the account can call it. Test one call before building on it.
 - **Long jobs need checkpoints.** A browser shell can time out at any moment; saving after each item turned a lost run into a resumable one.
 - **An AI judge only knows what you show it.** RAGAS judged the replies against the retrieved passages only, but the drafting model also had the client record and the sender's email. Correct facts from the client record ("your accountant is Ciarán") looked unsupported, so simple admin replies scored 0.00.
+- **The AI judge earned its place on the second run.** With the full context, it agreed with the fact check on T11 and found something the fact check can't: replies that invent a process (T13) or promise a meeting "next week" (T14). Those are the gaps in the knowledge base to fill next.
 - **Automated scores need a sanity check against known cases.** T11 has a known invented date and still scored 1.00; context relevance was 1.00 for everything. A metric that gives the same score to every case, or misses a known error, isn't measuring what you think.
 - **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
 
 ### Next session: resume checklist
-1. **RAGAS, second run** (the judge now sees the full context), then read the drafts behind the lowest scores.
-2. **Publish** the secure Lovable app and add its link to the README.
-3. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
-4. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
+1. **Record evaluation run 7** (today's last run, with the safe standard reply and the new next-step wording): `head -45 eval/report.md` in CloudShell, then add it to `eval/`.
+2. **Check in the app:** Mateus (T05) shows the safe standard reply with the amber note; Liam (T01) shows "a quick, free 20-minute call to confirm your quote".
+3. **Decide on T13/T14:** add the firm's process for bank-detail changes and appointments to the FAQ (then re-sync the knowledge base), plus a prompt rule against promising times or processes that aren't in the sources.
+4. **Publish** the secure Lovable app and add its link to the README.
+5. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
+6. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
 
 Close date: Friday 6 November 2026.
