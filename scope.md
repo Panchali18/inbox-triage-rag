@@ -19,7 +19,8 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 | 2 | Bedrock Guardrail (denied topic, PII masking) | ✅ Done and tuned (15 Oct) |
 | 3 | Evaluation | ✅ Runs 1–5 done (15 Oct) |
 | 3 | RAG vs prompt-stuffing comparison | ✅ Done (17 Oct): RAG 97% grounded vs 89%, 2.4× cheaper (`eval/rag-vs-stuffing.md`) |
-| 3 | Secure front end (key server-side), suggested attachments, prices by code (US-21, US-22) | 🔄 In progress (17 Oct) |
+| 3 | Secure front end (key server-side), suggested attachments, prices by code (US-21, US-22) | ✅ Done (17 Oct). Publishing pending. |
+| 3 | Evaluation run 6 and RAGAS scores | ⏳ Next |
 | 3 | Final README, recording, LinkedIn post | ⏳ Not started (story bank ready in `docs/`) |
 
 ## Personas
@@ -257,6 +258,8 @@ Real Gmail/Outlook integration, sending email, real client data, tax advice, AML
 - **Real file uploads,** so the documents step reads the files rather than their names.
 - **Multi-language** drafts and classification.
 - **Chunking test** (hierarchical or semantic) once the knowledge base grows. Not needed now: retrieval found the right source for every drafted reply.
+- **Sources found vs used:** label each passage on the review screen as used for facts, a tone example, or not used. A RAG screen otherwise shows what the search returned, not what the reply relied on.
+- **Minimum similarity score:** drop passages below a tested threshold, so obvious filler isn't passed to the model.
 - **Shareability in metadata:** move the list of client-shareable documents from code into each document's metadata file.
 
 ## Small improvements (done 17 Oct)

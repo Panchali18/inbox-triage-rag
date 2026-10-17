@@ -165,7 +165,8 @@ It never gives tax advice: advice questions go to an accountant.
 
 ## 16. "The AI picks the price, code writes it"
 - **What happened:** the model kept getting quotes subtly wrong. It combined payroll prices into totals (three runs out of three), and told a prospect "this would be the relevant fee for your situation" before anyone had seen his records. Prompt rules against both were ignored.
-- **Fix:** the model now chooses which rows of the fee guide answer the question, and code inserts those rows word for word. The model never writes a euro amount.
+- **First fix failed:** I asked the model to place a placeholder where the prices go. It put it mid-sentence and three times over, and still wrote its own prices.
+- **Fix that worked:** a separate small call only picks which rows of the fee guide apply (a short list), and code inserts those rows word for word. The draft model is told to write no prices, and any it still writes are flagged.
 - **Lesson:** for anything that must be exact, let the AI select and let code write. Keep the model for the wording around the facts.
 - **Evidence:** `pipeline/triage.py` (`price_list`, `draft_reply`), `build-log.md` day 3.
 
@@ -180,6 +181,13 @@ It never gives tax advice: advice questions go to an accountant.
 - **Fix:** a wording check that flags internal references and price judgements, alongside the fact check.
 - **Lesson:** grounded isn't the same as appropriate. Check tone and commitments, not only facts.
 - **Evidence:** `pipeline/triage.py` (`wording_check`), `build-log.md` day 3.
+
+---
+
+## 19. "Sources found isn't sources used"
+- **What happened:** the review screen said "Sources used (4)" for a quote. Looking closer: 1 passage supplied the prices, 1 (a past reply) the tone, and 2 weren't used at all. The most useful source, the fee guide, ranked third by similarity.
+- **Lesson:** RAG screens show what the search returned, not what the answer relied on. Similarity scores rank passages; they're not percentages.
+- **Evidence:** `build-log.md` day 3, "Learned".
 
 ---
 

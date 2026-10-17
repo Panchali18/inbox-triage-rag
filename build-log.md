@@ -302,47 +302,72 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 ---
 
-## Day 3: Saturday 17 October 2026: RAG vs prompt-stuffing
+## Day 3: Saturday 17 October 2026: RAG comparison, secure front end, better replies
 
 ### Done
-- Put the latest pipeline code live with `update_lambda.sh`.
-- Ran the evaluation twice on the same 40 emails: once with RAG (top 5 passages) and once with all 33 documents in the prompt. Compared them with `compare_rag_stuffing.py` ([`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md)).
-- **Results:** RAG 97% of draft facts grounded vs 89%; 0 unsupported facts vs 2; 2 guardrail blocks vs 3; 2,150 vs 8,625 input tokens per email; $0.0014 vs $0.0033 per email; both 2.6 seconds.
+**1. RAG vs prompt-stuffing (US-16).** Ran the evaluation twice on the same 40 emails: the top 5 retrieved passages, then all 33 documents in the prompt ([`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md)).
+- RAG 97% of draft facts grounded vs 89%; 0 unsupported facts vs 2; 2 guardrail blocks vs 3; 2,150 vs 8,625 input tokens per email; $0.0014 vs $0.0033 per email; both 2.6 seconds.
 - The RAG run matched run 5 (classification 37/40, blocks on T05 and T15 only), so the live pipeline is stable.
 
-- **Secure front end live in preview:** the API key was rotated (`rotate_api_key.sh`, old key deleted) and stored as an encrypted server-side secret in Lovable. The app calls the API through the server proxy, so the key is no longer in browser code. Checklists now show document names, and the advice banner has the new wording.
-- **No search for documents emails:** testing Wojciech's documents email in the app showed a "Sources used" box with 5 passages, although the reply came from a template and the client's checklist. The pipeline now skips retrieval for documents emails, unless they also contain an advice question (then the briefing note needs the guidance).
-- **Drafts pointed at internal documents and judged the price:** Liam's quote said "As outlined in our fee guide…" and "this would be the relevant fee for your situation", promising €450 before anyone had seen his records. The prompt already banned judging which price applies; the model ignored it. Added prompt rules (speak as the firm, never mention internal material, open with "Hi <name>") and a rule-based **wording check** that flags internal references and price judgements in every AI-written draft (`wording_check`, flag `wording`).
-- **Prices written by code (US-22), second attempt.** First version: the draft model was asked to write a `{{PRICES}}` placeholder and a `PRICE_ROWS:` line. Tested on T01, T06 and T11, it failed: the placeholder landed mid-sentence and three times over, the model still wrote "€450" and a "€104 a month" total itself, and it assumed monthly payroll when the sender said weekly. Second version: a separate small call only picks the rows (a short JSON list, which the model handles reliably); the draft model is told to write no prices; code inserts the rows after the first paragraph, plus "All fees exclude VAT." Any euro amount the model still writes gets a wording warning. This replaces the planned payroll-quote template with a fix for every quote.
-- **Links no longer depend on source tags:** T11's draft dropped its `[S#]` tags, so no Revenue link was added. Suggestions now also count a source as used when the draft contains a date or amount from it.
-- **Real client PDFs:** the "View" link first opened the Markdown source on GitHub, which isn't what a client would receive. `scripts/build_client_pdfs.py` now builds branded PDFs of the fee guide, FAQ and terms of engagement (`docs/client-documents/`), each marked "Demonstration only", and "View" opens those.
-- **Every prospect gets the next step:** one T06 draft left out the discovery-call offer. If a prospect draft doesn't mention it, code adds the fee guide's wording before the sign-off.
-- **New wording warning:** "applies a rule to the sender" (for example "your 2025 tax return", "you must register").
-- **Suggested attachments and links (US-21):** shareable sources that the draft actually cites are suggested. Firm documents (fee guide, FAQ, terms of engagement) appear as unticked attachments for the reviewer; Revenue pages are public, so they're added to the email as links. Past replies and the internal onboarding checklist are never suggested. The approval records which attachments were ticked.
-- **Smaller fixes:** a prompt rule to match the sender's language level; the client card shows service names ("Form 11 tax return") instead of codes; OQ-1 and OQ-2 marked decided; the v2 list completed.
+**2. Secure front end.** The API key was rotated (`rotate_api_key.sh`, old key deleted) and stored as an encrypted server-side secret in Lovable. The app calls the API through a server proxy, so the key is no longer in browser code. The old key-in-browser app (second Lovable account) stopped working when its key was deleted, as intended. Checklists show document names, and the advice banner has the new wording.
+
+**3. No search for documents emails.** Wojciech's documents email showed a "Sources used (5)" box, although the reply came from a template and his checklist. Documents emails now skip retrieval, unless they also contain an advice question (the briefing note needs the guidance then). Adaeze's documents email confirmed it: "Sources used (0)".
+
+**4. Replies that speak as the firm.** Liam's quote said "As outlined in our fee guide…" and "this would be the relevant fee for your situation", promising €450 before anyone had seen his records.
+- Prompt rules: speak as the firm, never mention internal material, open with "Hi <name>", end with "Kind regards,", match the sender's language level.
+- A rule-based **wording check** (`wording_check`, flag `wording`) flags internal references, price judgements, prices the model wrote itself, and rules applied to the sender ("your 2025 tax return", "you must register").
+
+**5. Prices written by code (US-22).** The model chooses which fee-guide rows answer the question in a separate small call; code inserts those rows word for word under "Here are our prices:", plus "All fees exclude VAT." The draft model is told to write no prices. This replaces the planned payroll-quote template with a fix for every quote.
+
+**6. Suggested attachments and links (US-21).** Shareable sources the draft uses are suggested. Firm documents (fee guide, FAQ, terms of engagement) appear as unticked attachments with a "View" link to a branded PDF (`scripts/build_client_pdfs.py`, `docs/client-documents/`). Revenue pages are public, so they're added to the email as links above the signature. Past replies and the internal onboarding checklist are never suggested. The approval records the ticked attachments (`final_attachments`).
+
+**7. Every prospect gets the next step.** If a prospect draft doesn't mention the discovery call, code adds the fee guide's wording before the sign-off.
+
+**8. Smaller items.** The client card shows service names ("Form 11 tax return") instead of codes. OQ-1 and OQ-2 marked decided. The v2 list completed.
+
+**Final checks (T01, T06, T11):**
+- **T01 (Liam) and T06 (Tom):** prices once, word for word, no totals, no "fee guide" wording, the discovery call included. The fee guide is suggested as an attachment, and "View" opens the PDF.
+- **T11 (Ana):** the Revenue link is added. The model still invents "18 November 2026" for online filing and writes "your 2025 tax return"; both are flagged for the reviewer (unsupported fact, wording).
+
+### Blocked and rerouted
+| What happened | Why | What we did instead |
+|---|---|---|
+| `git pull` in CloudShell refused to run | The comparison had saved a local copy of `eval/rag-vs-stuffing.md`, and the fuller version was on GitHub | Deleted the local copy (its content was already on GitHub) and pulled again |
+| A fix seemed not to work in the app | The Lambda was still running the old code, because the pull had failed | Checked the model-call count (2 calls meant no advice detected, so the new code would have skipped the search), found the failed pull, and redeployed |
+| "Network error: could not reach the API" in the Lovable preview | The preview reloaded while Lovable was rebuilding | Waited for the build to finish and refreshed |
+| Lovable didn't apply the change | It was in "Chat" mode, which plans and waits | Clicked "Build" |
+| **First price design failed** | The model was asked to place a `{{PRICES}}` placeholder and add a `PRICE_ROWS:` line in a free-text email. It put the placeholder mid-sentence and three times over, still wrote "€450" and a "€104 a month" total itself, and assumed monthly payroll when the sender said weekly. T01 was blocked by the guardrail. | Split the job: a separate small call returns a JSON list of rows, and code inserts them. Second test: the price block was in the wrong place, because the model wrote its own "Here are our prices:" paragraph. Code now writes the lead-in and removes the model's. |
+| No Revenue link on T11 | The draft dropped its `[S#]` source tags, and suggestions relied on them | A source also counts as used when the draft contains a date or amount from it |
+| The Revenue link landed below the signature | The model left out "Kind regards" | Links go above the staff name when there's no closing line, and the prompt asks for "Kind regards," |
+| Tom's own "€600k" was flagged as a price the model wrote | "k" wasn't read as thousands | The sender's own figures are normalised and ignored |
+| "View" opened the Markdown source on GitHub | The first link pointed at the knowledge-base file | Built branded client PDFs and pointed "View" at them |
+| "View" still opened the old page after the fix | That email was processed before the update; each email keeps the link it was given | Submitted a new email |
+| Planned a knowledge-base re-sync to mark shareable documents | It would cost a sync and a step for no visible gain | Kept the shareable list in code; moving it into metadata is on the v2 list |
+| Proposed "Sources found / Used" labels on screen | Not needed for the demo | Dropped, and added to the v2 list as an idea |
 
 ### Decided
-- **Keep RAG.**
+- **Keep RAG.** It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
 - **The AI selects, code writes.** For anything that must be exact (prices, document names, checklists), the model chooses from a list and code produces the text. The model writes only the wording around it.
-- **Suggest, never attach.** The system suggests documents, but only a human decides what reaches a client. It matches the project's main rule: the AI drafts, and a person approves.
-- **Shareable documents are listed in code for now.** Moving the list into each document's metadata is cleaner, but it would mean re-syncing the knowledge base for no visible gain in the demo. It's on the v2 list. It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
+- **Suggest, never attach.** The system suggests documents, but only a person decides what reaches a client.
+- **Shareable documents are listed in code for now** (see the table above).
+- **Warn, don't block, on wording.** A wording warning doesn't stop approval: the reviewer edits or accepts. Unsupported facts still need an override to approve.
 
 ### Learned
 - **More context isn't better context.** With every document in the prompt, the model gave T11's deadlines with the wrong year and turned T01's quote into advice-like wording. With only the relevant passages, it did neither.
 - **At small scale, the difference is modest.** Prompt-stuffing still worked, cost a third of a cent and wasn't slower. The case for RAG here is accuracy and growth, not speed. Say so honestly rather than overselling it.
-- **The safety layers are mode-independent.** The fact check and the guardrail caught the stuffing errors too, so neither design let an unchecked error reach a reviewer.
-- **T06 combined prices in both modes, with different totals.** More evidence that the payroll quote needs a template.
-- **A reply can be factually right and still wrong for a client.** Every fact in Liam's draft was in the fee guide, so the fact check passed it. Tone and commitments ("the relevant fee for you") need their own check.
-- **Small models handle selection better than formatting.** Asking Nova 2 Lite to place a placeholder and add a control line inside a free-text email failed; asking it for a short JSON list in a separate call works. Split jobs into small, checkable steps.
+- **The safety layers are mode-independent.** The fact check and the guardrail caught the stuffing errors too.
+- **A reply can be factually right and still wrong for a client.** Every fact in Liam's draft was in the fee guide, so the fact check passed it. Tone and commitments need their own check.
+- **Small models handle selection better than formatting.** Asking Nova 2 Lite to place a placeholder and a control line inside an email failed; asking it for a short JSON list in a separate call works. Split jobs into small, checkable steps.
+- **Prompts are still not guarantees.** Even with explicit rules and a bad-and-good example, the model sometimes writes a price, invents a date or addresses the sender. The checks in code are what make it safe; the prompt only makes it less frequent.
 - **Not every source is shareable.** Past replies contain other clients' details, and the onboarding checklist describes the internal identity-check process. Retrieval doesn't care; the sharing rule has to.
-- **Show sources only where they were used.** A sources box beside a template reply suggests the reply was based on those passages. Showing evidence that wasn't used is misleading, even if it's harmless.
+- **"Sources used" usually means "sources found".** A RAG screen shows what the search returned, not what the answer relied on. In Tom's quote, 4 passages were listed; 1 supplied the facts, 1 the tone, and 2 weren't used. The similarity score (0 to 1) ranks passages; it isn't a percentage, and the most useful source isn't always first.
+- **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
 
 ### Next session: resume checklist
-1. **Secure Lovable version,** once credits reset:
-   - `bash scripts/rotate_api_key.sh` (copy the new key; don't paste it in any chat)
-   - in Lovable, type "continue" and paste the new key into the secure form
-   - fix the small items: checklist names, advice banner wording
-2. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31).
-3. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
+1. **Evaluation run 6** on the latest pipeline, to confirm today's changes didn't break anything: `GUARDRAIL_ID=$GID python3 scripts/run_eval.py`, then record it in `eval/`.
+2. **RAGAS scores** (US-15, AC4): faithfulness and context relevance on the drafted replies.
+3. **Publish** the secure Lovable app and add its link to the README.
+4. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
+5. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
 
 Close date: Friday 6 November 2026.
