@@ -182,8 +182,6 @@ It never gives tax advice: advice questions go to an accountant.
 - **Lesson:** grounded isn't the same as appropriate. Check tone and commitments, not only facts.
 - **Evidence:** `pipeline/triage.py` (`wording_check`), `build-log.md` day 3.
 
----
-
 ## 19. "Sources found isn't sources used"
 - **What happened:** the review screen said "Sources used (4)" for a quote. Looking closer: 1 passage supplied the prices, 1 (a past reply) the tone, and 2 weren't used at all. The most useful source, the fee guide, ranked third by similarity.
 - **Lesson:** RAG screens show what the search returned, not what the answer relied on. Similarity scores rank passages; they're not percentages.
