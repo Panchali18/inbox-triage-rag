@@ -315,6 +315,14 @@ def suggestions(draft_with_tags, passages, facts=()):
         else:
             continue
         seen.add(src)
+    # The draft talks about Revenue but cites no page (tags dropped, no dated fact): link the best-matching
+    # Revenue page that was retrieved, so the client can read the guidance itself.
+    if "revenue" in (draft_with_tags or "").lower() and not any(s["kind"] == "link" for s in out):
+        rev = sorted((p for p in passages if p["source"].startswith("revenue/") and p.get("url")),
+                     key=lambda p: -p.get("score", 0))
+        if rev:
+            out.append({"kind": "link", "title": REVENUE_TITLES.get(rev[0]["source"].split("/")[-1], "Revenue guidance"),
+                        "url": rev[0]["url"], "source": rev[0]["source"], "in_email": True})
     return out
 
 
