@@ -354,7 +354,7 @@ Rules:
    ("you must", "you are obliged", "your deadline is", "you will need to register"). Copy dates and YEARS exactly
    as written in the source. Suggest checking revenue.ie for the current position.
 7. Plain, warm, professional Irish business English. Short paragraphs. No markdown headings.
-8. Sign off as "Sinéad Kehoe, Practice Manager, Nore Valley Accountants".
+8. End with "Kind regards," on its own line, then "Sinéad Kehoe, Practice Manager, Nore Valley Accountants".
 9. Sources from past-replies/ are examples of tone and structure ONLY. Never copy their names, days, times or
    appointment offers. Do not propose specific days or times; offer to arrange a time instead.
 10. Prices: never write a euro amount yourself. If PRICES are given, they are inserted automatically after your
@@ -375,6 +375,7 @@ Return only the email body."""
 FEE_ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$", re.M)
 PRICE_ROWS_LINE = re.compile(r"^\s*PRICE_ROWS:\s*(.*)$", re.I | re.M)
 SIGN_OFF = re.compile(r"^(?:kind regards|best regards|regards|many thanks|best wishes|thanks|warm regards)\b", re.I | re.M)
+SIGNATURE = re.compile(r"^(?:" + "|".join(map(re.escape, STAFF)) + r")\b", re.M)
 
 
 def price_list(passages):
@@ -393,7 +394,7 @@ def price_list(passages):
 
 
 def insert_before_sign_off(text, block):
-    m = list(SIGN_OFF.finditer(text))
+    m = list(SIGN_OFF.finditer(text)) or list(SIGNATURE.finditer(text))
     if not m:
         return text.rstrip() + "\n\n" + block
     i = m[-1].start()
