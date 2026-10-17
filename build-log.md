@@ -339,6 +339,8 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **T13 (0.29) and T14 (0.17) are real findings.** The model invented a process ("send us the new account details") and promised a meeting "next week". Our fact check can't see these, because there are no amounts or dates in them.
 - T08 got no score (the judge's answer couldn't be read). Context relevance was still 1.00 everywhere.
 
+**14. Evaluation run 7** ([`eval/run-7-safe-reply.md`](eval/run-7-safe-reply.md)): Mateus (T05) now gets the safe standard reply, so all 7 prospects get a next step. Still no regressions: routing, urgent items, advice, lookup, checklists and injection at 100%; 0 combined prices; drafted replies found the right source 15/15. About $0.0013 per email, median 4.4 seconds.
+
 **Final checks (T01, T06, T11):**
 - **T01 (Liam) and T06 (Tom):** prices once, word for word, no totals, no "fee guide" wording, the discovery call included. The fee guide is suggested as an attachment, and "View" opens the PDF.
 - **T11 (Ana):** the Revenue link is added. The model still invents "18 November 2026" for online filing and writes "your 2025 tax return"; both are flagged for the reviewer (unsupported fact, wording).
@@ -397,11 +399,10 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
 
 ### Next session: resume checklist
-1. **Record evaluation run 7** (today's last run, with the safe standard reply and the new next-step wording): `head -45 eval/report.md` in CloudShell, then add it to `eval/`.
-2. **Check in the app:** Mateus (T05) shows the safe standard reply with the amber note; Liam (T01) shows "a quick, free 20-minute call to confirm your quote".
-3. **Decide on T13/T14:** add the firm's process for bank-detail changes and appointments to the FAQ (then re-sync the knowledge base), plus a prompt rule against promising times or processes that aren't in the sources.
-4. **Publish** the secure Lovable app and add its link to the README.
-5. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
-6. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
+1. **Check in the app:** Mateus (T05) shows the safe standard reply with the amber note; Liam (T01) shows "a quick, free 20-minute call to confirm your quote".
+2. **Decide on T13/T14:** add the firm's process for bank-detail changes and appointments to the FAQ (then re-sync the knowledge base), plus a prompt rule against promising times or processes that aren't in the sources.
+3. **Publish** the secure Lovable app and add its link to the README.
+4. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
+5. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
 
 Close date: Friday 6 November 2026.

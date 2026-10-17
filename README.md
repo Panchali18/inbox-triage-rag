@@ -103,7 +103,7 @@ The same 40 emails, model and safety layers. Only the source text differs: the t
 
 RAG was more accurate and 2.4× cheaper. At 33 documents, pasting everything still works; RAG's advantage grows with the size of the knowledge base. Details: [`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md).
 
-**Latest evaluation (run 6, after the reply improvements):** no regressions, no combined prices for the first time, and every prospect reply offers the next step. See [`eval/run-6-better-replies.md`](eval/run-6-better-replies.md). **RAGAS** (AI judge: Amazon Nova Pro): faithfulness **0.86**, with every prospect reply at 1.00. It also found two admin replies that invent a process or promise a meeting time, which the rule-based fact check can't see. See [`eval/ragas-run-2.md`](eval/ragas-run-2.md).
+**Latest evaluation (run 7, after the reply improvements):** no regressions, no combined prices, and every prospect reply offers a next step, including the one whose AI draft the guardrail blocked. See [`eval/run-7-safe-reply.md`](eval/run-7-safe-reply.md) and [`eval/run-6-better-replies.md`](eval/run-6-better-replies.md). **RAGAS** (AI judge: Amazon Nova Pro): faithfulness **0.86**, with every prospect reply at 1.00. It also found two admin replies that invent a process or promise a meeting time, which the rule-based fact check can't see. See [`eval/ragas-run-2.md`](eval/ragas-run-2.md).
 
 Full results and what changed between runs: [`eval/`](eval/).
 
