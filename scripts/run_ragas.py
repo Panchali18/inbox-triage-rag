@@ -2,8 +2,7 @@
 
 Run in AWS CloudShell from the repo folder, after scripts/run_eval.py:
     pip install -q "ragas==0.2.15" "langchain-google-genai==2.1.5"
-    read -s GOOGLE_API_KEY && export GOOGLE_API_KEY      # type the key; it isn't shown or saved
-    python3 scripts/run_ragas.py
+    python3 scripts/run_ragas.py      # asks for the Gemini key; typing is hidden and the key isn't saved
 
 Judge model: Gemini (free tier), acceptable because every email and document is synthetic (scope assumption A7).
 Metrics:
@@ -11,6 +10,7 @@ Metrics:
   - Context relevance: how relevant the retrieved passages are to the sender's email (0 to 1).
 Writes eval/ragas.md and eval/results/ragas.json.
 """
+import getpass
 import json
 import math
 import os
@@ -28,7 +28,10 @@ ROOT = Path(__file__).resolve().parent.parent
 JUDGE = os.environ.get("RAGAS_MODEL", "gemini-2.5-flash")
 
 if not os.environ.get("GOOGLE_API_KEY"):
-    sys.exit("Set GOOGLE_API_KEY first:  read -s GOOGLE_API_KEY && export GOOGLE_API_KEY")
+    key = getpass.getpass("Paste your Gemini API key and press Enter (nothing will show while you paste): ").strip()
+    if not key:
+        sys.exit("No key entered. Run the script again.")
+    os.environ["GOOGLE_API_KEY"] = key          # for this run only; never written to disk
 
 results = json.loads((ROOT / "eval/results/latest.json").read_text(encoding="utf-8"))
 rows = []
