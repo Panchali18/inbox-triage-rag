@@ -45,35 +45,43 @@ for x in results:
     rows.append({"id": x["id"], "user_input": f"Subject: {r.get('subject')}\n\n{r.get('body')}",
                  "response": r["draft"], "retrieved_contexts": contexts})
 
-print(f"Scoring {len(rows)} AI-written drafts with {JUDGE}. The free tier is slow; expect 10-15 minutes.")
-dataset = EvaluationDataset.from_list([{k: v for k, v in row.items() if k != "id"} for row in rows])
+PARTIAL = ROOT / "eval" / "results" / "ragas-partial.json"   # saved after every email, so a cut-off run can resume
+done = {e["id"]: e for e in json.loads(PARTIAL.read_text(encoding="utf-8"))} if PARTIAL.exists() else {}
+todo = [row for row in rows if row["id"] not in done]
+print(f"Scoring {len(rows)} AI-written drafts with {JUDGE} ({len(done)} already done, {len(todo)} to go). "
+      f"The free tier is slow; about a minute per email.")
 judge = LangchainLLMWrapper(ChatGoogleGenerativeAI(model=JUDGE, temperature=0))
 t0 = time.time()
-scores = evaluate(dataset, metrics=[Faithfulness(), ContextRelevance()], llm=judge,
-                  run_config=RunConfig(max_workers=1, max_retries=10, max_wait=90, timeout=240),
-                  show_progress=True).to_pandas()
+num = lambda v: None if v is None or (isinstance(v, float) and math.isnan(v)) else float(v)
+for i, row in enumerate(todo, 1):
+    ds = EvaluationDataset.from_list([{k: v for k, v in row.items() if k != "id"}])
+    s = evaluate(ds, metrics=[Faithfulness(), ContextRelevance()], llm=judge,
+                 run_config=RunConfig(max_workers=1, max_retries=10, max_wait=90, timeout=240),
+                 show_progress=False).to_pandas().iloc[0]
+    done[row["id"]] = {"id": row["id"], "faithfulness": num(s.get("faithfulness")),
+                       "context_relevance": num(s.get("nv_context_relevance", s.get("context_relevance")))}
+    PARTIAL.parent.mkdir(parents=True, exist_ok=True)
+    PARTIAL.write_text(json.dumps(list(done.values()), indent=2), encoding="utf-8")
+    e = done[row["id"]]
+    print(f"  {i}/{len(todo)}  {row['id']}  faithfulness {e['faithfulness']}  context relevance {e['context_relevance']}")
 
-per_email = []
-for row, (_, s) in zip(rows, scores.iterrows()):
-    per_email.append({"id": row["id"], "faithfulness": s.get("faithfulness"),
-                      "context_relevance": s.get("nv_context_relevance", s.get("context_relevance"))})
+per_email = [done[row["id"]] for row in rows]
 
 
 def avg(key):
-    vals = [e[key] for e in per_email if e[key] is not None and not math.isnan(e[key])]
+    vals = [e[key] for e in per_email if e[key] is not None]
     return (statistics.mean(vals), len(vals)) if vals else (float("nan"), 0)
 
 
 fmt = lambda v: "-" if v is None or (isinstance(v, float) and math.isnan(v)) else f"{v:.2f}"
 f_avg, f_n = avg("faithfulness")
 c_avg, c_n = avg("context_relevance")
-low = [e["id"] for e in per_email if e["faithfulness"] is not None and not math.isnan(e["faithfulness"])
-       and e["faithfulness"] < 0.8]
+low = [e["id"] for e in per_email if e["faithfulness"] is not None and e["faithfulness"] < 0.8]
 table = "\n".join(f"| {e['id']} | {fmt(e['faithfulness'])} | {fmt(e['context_relevance'])} |" for e in per_email)
 report = f"""# RAGAS scores (US-15, AC4)
 
 Judge: `{JUDGE}` (Gemini free tier; all data is synthetic). RAGAS 0.2.15. Drafts scored: {len(rows)} AI-written replies
-from the latest evaluation run (templates are excluded, because they're fixed text). Run time {(time.time() - t0) / 60:.0f} minutes.
+from the latest evaluation run (templates are excluded, because they're fixed text). Last session's run time {(time.time() - t0) / 60:.0f} minutes.
 
 | Metric | Average | Drafts scored | What it measures |
 |---|---|---|---|
@@ -97,4 +105,5 @@ Drafts with faithfulness below 0.80: {", ".join(low) or "none"}.
 """
 (ROOT / "eval" / "ragas.md").write_text(report, encoding="utf-8")
 (ROOT / "eval" / "results" / "ragas.json").write_text(json.dumps(per_email, indent=2, default=str), encoding="utf-8")
+PARTIAL.unlink()      # complete: the next run starts fresh
 print("\n" + report)
