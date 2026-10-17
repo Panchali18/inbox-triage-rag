@@ -2,9 +2,9 @@
 
 Raw material for the "AI Build" series. Each story gives what happened, the evidence in this repo, the numbers and the lesson. Write the posts in your own voice. Everything here is from synthetic data in a demonstration project, so say so in each post.
 
-**Status at 15 Oct 2026:**
+**Status:**
 - Pipeline, API, guardrail and evaluation (5 runs): done.
-- RAG vs prompt-stuffing comparison: **not yet run**. Don't post story 13 until it is.
+- RAG vs prompt-stuffing comparison: done (`eval/rag-vs-stuffing.md`).
 - Secure front end (key on the server): **pending**.
 
 ---
@@ -140,9 +140,16 @@ It never gives tax advice: advice questions go to an accountant.
 - **Lesson:** in triage, routing is the product. Make it deterministic and testable, not an AI guess.
 - **Evidence:** `scope.md` US-18, `eval/run-3-routing.md`.
 
-## 13. "RAG vs pasting everything into the prompt" (**not run yet; don't post until it is**)
-- **Plan:** the same 40 emails, the same model and the same safety layers. Compare the top 5 retrieved passages against all 33 documents (about 10,000 tokens) on grounding, blocked drafts, tokens, cost and speed.
-- **Evidence (when run):** `eval/rag-vs-stuffing.md`.
+## 13. "RAG vs pasting everything into the prompt"
+- **What happened:** I ran the same 40 emails twice, with the same model and the same safety layers. One run gave the model the 5 most relevant passages (RAG). The other pasted in all 33 documents, about 10,000 tokens.
+- **Results:**
+  - Facts in drafts found in a source: **97% with RAG, 89% with everything in the prompt**.
+  - With everything in the prompt, one reply gave two deadlines with the wrong year (2025 instead of 2026), and a plain quote drifted into wording the guardrail blocked as advice.
+  - RAG used **4× fewer input tokens** and cost **2.4× less** per email.
+  - Speed was the same: 2.6 seconds each.
+- **The honest caveat:** with only 33 documents, pasting everything still works and costs a third of a cent. RAG's advantage grows with the knowledge base, because a real firm's thousands of documents won't fit in a prompt.
+- **Lesson:** more context isn't better context. Giving the model only what's relevant made it more accurate as well as cheaper. And test your architecture choice, don't assume it.
+- **Evidence:** `eval/rag-vs-stuffing.md`.
 
 ## 14. "An internal note can give advice too"
 - **What happened:** the briefing note for a partner concluded that a jewellery seller was "not required to register for VAT", using the **services** threshold (€42,500) for someone selling **goods** (€85,000).
@@ -173,9 +180,10 @@ It never gives tax advice: advice questions go to an accountant.
 | Cost per email | about $0.0013 |
 | Median time per email | about 3–4 seconds |
 | Evaluation runs | 5, each change measured and documented |
+| RAG vs everything in the prompt | 97% vs 89% of facts grounded; 4× fewer input tokens; 2.4× cheaper; same speed (2.6 s) |
 | Knowledge base | 4 firm documents, 20 past replies, 9 Revenue pages (CC BY 4.0) |
 
 ## Wording reminders
 - Say "synthetic data" and "demonstration only" in every post.
 - Don't name Revenue as a partner or endorser. "Uses public Revenue.ie guidance under CC BY 4.0" is fine.
-- Don't call unfinished items done: the RAG comparison and the secure front end are still pending.
+- Don't call unfinished items done: the secure front end is still pending.

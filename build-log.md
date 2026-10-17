@@ -31,6 +31,7 @@ What I built at each step, the decisions I made and why, and what I learned alon
 | Review screen | Clean draft, client card and history beside it, warnings only when something's wrong, sources collapsed | Matches how a reviewer works with email | Inline `[S1]` citation tags in the draft |
 | Throttling | Adaptive retries with backoff on every Bedrock call | New accounts have low model quotas. One evaluation email failed before this. | Failing on the first throttle |
 | Deployment | Scripts run in CloudShell (`deploy.sh`, `update_lambda.sh`, `reset_demo.sh`, `rotate_api_key.sh`) | Repeatable, and documented in the repo | Clicking through the console |
+| RAG vs prompt-stuffing | Keep RAG | Tested: 97% vs 89% of facts grounded, 2.4× cheaper, same speed, and it scales past what fits in a prompt | All documents in every prompt |
 | Front end | Lovable (React) calling the API through a server-side proxy (secure version), or directly with a rate-limited key (demo version) | Lovable is in AI job posts. The server-side version keeps the key out of the browser. | Streamlit (excluded in the brief) |
 
 ---
@@ -299,21 +300,31 @@ What I built at each step, the decisions I made and why, and what I learned alon
 ### Parked (Thursday 15 October 2026, 13:50)
 Work paused until the weekend. Everything is on GitHub. AWS resources stay running: they're pay-per-use and cost almost nothing when idle.
 
-### Next session: resume checklist
-1. **In CloudShell** (`cd ~/inbox-triage-rag`, then `git pull`):
-   - `bash scripts/update_lambda.sh` puts the latest pipeline code live. The guardrail setting is kept.
-   - Re-create the guardrail ID: `GID=$(aws bedrock list-guardrails --region eu-north-1 --query "guardrails[?name=='inbox-triage-v1-guardrail'].id | [0]" --output text)`
-2. **RAG vs prompt-stuffing (US-16):**
-   - `GUARDRAIL_ID=$GID python3 scripts/run_eval.py`
-   - `GUARDRAIL_ID=$GID python3 scripts/run_eval.py --stuffing`
-   - `python3 scripts/compare_rag_stuffing.py`
+---
 
-   Then record the results in `eval/` and update story 13 in `docs/linkedin-story-bank.md`.
-3. **Secure Lovable version,** once credits reset:
+## Day 3: Saturday 17 October 2026: RAG vs prompt-stuffing
+
+### Done
+- Put the latest pipeline code live with `update_lambda.sh`.
+- Ran the evaluation twice on the same 40 emails: once with RAG (top 5 passages) and once with all 33 documents in the prompt. Compared them with `compare_rag_stuffing.py` ([`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md)).
+- **Results:** RAG 97% of draft facts grounded vs 89%; 0 unsupported facts vs 2; 2 guardrail blocks vs 3; 2,150 vs 8,625 input tokens per email; $0.0014 vs $0.0033 per email; both 2.6 seconds.
+- The RAG run matched run 5 (classification 37/40, blocks on T05 and T15 only), so the live pipeline is stable.
+
+### Decided
+- **Keep RAG.** It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
+
+### Learned
+- **More context isn't better context.** With every document in the prompt, the model gave T11's deadlines with the wrong year and turned T01's quote into advice-like wording. With only the relevant passages, it did neither.
+- **At small scale, the difference is modest.** Prompt-stuffing still worked, cost a third of a cent and wasn't slower. The case for RAG here is accuracy and growth, not speed. Say so honestly rather than overselling it.
+- **The safety layers are mode-independent.** The fact check and the guardrail caught the stuffing errors too, so neither design let an unchecked error reach a reviewer.
+- **T06 combined prices in both modes, with different totals.** More evidence that the payroll quote needs a template.
+
+### Next session: resume checklist
+1. **Secure Lovable version,** once credits reset:
    - `bash scripts/rotate_api_key.sh` (copy the new key; don't paste it in any chat)
    - in Lovable, type "continue" and paste the new key into the secure form
    - fix the small items: checklist names, advice banner wording
-4. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31).
-5. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
+2. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31).
+3. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
 
 Close date: Friday 6 November 2026.

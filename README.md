@@ -4,7 +4,7 @@
 
 An AI pipeline that triages the shared inbox of a small accounting practice. It classifies each email, looks up the sender, retrieves the relevant firm policy and Revenue guidance, and drafts a grounded reply for a human to approve. Advice questions always go to an accountant.
 
-> **Status: in progress (paused 15 Oct 2026).** Built and evaluated: the knowledge base, pipeline, API, guardrail and front end. Remaining: the RAG vs prompt-stuffing comparison, the secure front-end version, the recording and the posts. Close date: Friday 6 November 2026. See [build-log.md](build-log.md) for progress, decisions and learnings.
+> **Status: in progress.** Built and evaluated: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison. Remaining: the secure front-end version and the recording. See [build-log.md](build-log.md) for progress, decisions and learnings.
 
 ---
 
@@ -59,7 +59,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | API | Amazon API Gateway REST API with an API key and usage plan (2 req/s, 300/day) | ✅ Deployed |
 | Safety | Amazon Bedrock Guardrails: denied topic "personal tax advice", PII masking (cards, IBAN, passwords, Irish PPSN), applied to drafts only | ✅ Live and tuned |
 | Front end | Lovable (React): shared inbox, personal mailboxes, clean draft, client context panel | ✅ Working (key-in-browser version). Server-side-key version pending. |
-| Evaluation | Custom test set of 40 labelled emails, 5 runs (see `eval/`). RAGAS comparison planned. | ✅ Runs 1–5 |
+| Evaluation | Custom test set of 40 labelled emails, 5 runs, plus a RAG vs prompt-stuffing comparison (see `eval/`) | ✅ Done |
 | Observability | Amazon CloudWatch structured logs (type, routing, tokens, latency; no email bodies) | ✅ |
 
 **Region:** eu-north-1 (Stockholm). The AWS account is locked to this region. Data stays in the EU, which is the test that matters under GDPR. A real deployment for an Irish firm could choose eu-west-1 (Ireland).
@@ -86,6 +86,21 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | Cost per email | about $0.0013 |
 | Median time per email | about 4 seconds |
 
+### RAG vs putting every document in the prompt
+
+The same 40 emails, model and safety layers. Only the source text differs: the top 5 retrieved passages, or all 33 documents (about 10,000 tokens).
+
+| Measure | RAG | All documents in the prompt |
+|---|---|---|
+| Facts in drafts found in a source | 97% | 89% |
+| Wrong facts flagged by the fact check | 0 | 2 (deadlines given the wrong year) |
+| Drafts blocked as advice | 2 | 3 |
+| Input tokens per email | 2,150 | 8,625 |
+| Cost per email | $0.0014 | $0.0033 |
+| Median time per email | 2.6 s | 2.6 s |
+
+RAG was more accurate and 2.4× cheaper. At 33 documents, pasting everything still works; RAG's advantage grows with the size of the knowledge base. Details: [`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md).
+
 Full results and what changed between runs: [`eval/`](eval/).
 
 ## Repository layout
@@ -95,7 +110,7 @@ Full results and what changed between runs: [`eval/`](eval/).
 | `scope.md` | User stories, acceptance criteria, assumptions and open questions |
 | `build-log.md` | Step-by-step log of decisions and learnings |
 | `docs/linkedin-story-bank.md` | Post-ready stories from the build, with evidence and numbers |
-| `eval/` | Evaluation reports for runs 1–5, plus the RAG vs prompt-stuffing comparison (when run) |
+| `eval/` | Evaluation reports for runs 1–5, and the RAG vs prompt-stuffing comparison |
 | `pipeline/triage.py` | The triage pipeline (classify, look up, route, retrieve, act, fact check, guardrail) |
 | `lambda/handler.py` | API routes for the front end |
 | `frontend/` | Lovable prompts (v2 is current) |
