@@ -234,7 +234,7 @@ As the builder, I want costs capped and resources tagged so that the project doe
   - Revenue content is general guidance. It is never presented as the firm's own advice.
 - A5: The full pipeline finishes within API Gateway's 29-second limit. If not, processing becomes asynchronous: submit returns immediately and the queue polls.
 - A6: An API key visible in the browser is acceptable for a demo. It is protected by throttling and stated in the README as a limitation.
-- ~~A7: Gemini free tier as the RAGAS judge is acceptable because all data is synthetic.~~ **Changed (17 Oct):** the free tier's daily limit (20 requests per model) was too low for RAGAS. The judge is Claude Sonnet 5.5 on Bedrock (EU inference profile): no extra key, data stays in EU regions, about $1 or less per run.
+- ~~A7: Gemini free tier as the RAGAS judge is acceptable because all data is synthetic.~~ **Changed (17 Oct):** the free tier's daily limit (20 requests per model) was too low for RAGAS. The judge is Amazon Nova Pro on Bedrock (EU inference profile): no extra key, data stays in EU regions, under $1 per run. Claude Sonnet 5.5 was the first choice, but it isn't available on this free-plan account.
 
 ## Open questions
 

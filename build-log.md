@@ -348,7 +348,8 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 | RAGAS: the `read -s` key prompt didn't wait, and the key was pasted as a command and shown on screen | A fiddly way to enter a secret | The key was deleted and replaced. The script now asks for the key itself, hidden |
 | RAGAS: `gemini-2.5-flash` returned 404 | Closed to new API keys | Switched to `gemini-3.8-flash` |
 | RAGAS: CloudShell signed out mid-run, and the installed packages were cleared | CloudShell sessions time out; results were only saved at the end | The script now saves after every email and resumes; packages are reinstalled in one line |
-| **RAGAS: Gemini's free tier hit its daily limit** (20 requests per model per day; retry in 10 hours) | RAGAS makes several judge calls per email (about 60–80 for 13 drafts) | **Switched the judge to Claude Sonnet 5.5 on Bedrock** (EU profile): no extra key, data stays in EU regions, about $1 or less of credits, and a different, stronger model than the generator |
+| **RAGAS: Gemini's free tier hit its daily limit** (20 requests per model per day; retry in 10 hours) | RAGAS makes several judge calls per email (about 60–80 for 13 drafts) | **Switched the judge to Bedrock** (EU profile): no extra key, data stays in EU regions, under $1 of credits |
+| RAGAS: Claude Sonnet 5.5 returned AccessDeniedException, "not available for this account" | Claude models are listed in Stockholm but not enabled on this free-plan account | **Judge is Amazon Nova Pro** (EU profile), a larger model than the generator (Nova 2 Lite) but the same family. The script now stops at once if the judge returns no scores, instead of marking every email blank |
 | Proposed "Sources found / Used" labels on screen | Not needed for the demo | Dropped, and added to the v2 list as an idea |
 
 ### Decided
@@ -368,7 +369,8 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **Not every source is shareable.** Past replies contain other clients' details, and the onboarding checklist describes the internal identity-check process. Retrieval doesn't care; the sharing rule has to.
 - **"Sources used" usually means "sources found".** A RAG screen shows what the search returned, not what the answer relied on. In Tom's quote, 4 passages were listed; 1 supplied the facts, 1 the tone, and 2 weren't used. The similarity score (0 to 1) ranks passages; it isn't a percentage, and the most useful source isn't always first.
 - **Free tiers are for trying, not for evaluation.** Gemini's free tier allowed 20 requests per model per day, and RAGAS needs several judge calls per email. Check the rate limits of a judge model against the number of calls before choosing it. Here, the judge already available in the same cloud (Bedrock) was cheaper in time, simpler (no extra key) and better for data residency.
-- **The judge should be a different, stronger model than the one being judged.** Claude Sonnet 5.5 judges drafts written by Nova 2 Lite.
+- **The judge should be a different, stronger model than the one being judged.** The plan was Claude Sonnet 5.5 judging Nova 2 Lite's drafts, but Claude isn't available on this free-plan account. Nova Pro is larger than Nova 2 Lite but from the same family, so a shared blind spot is possible. Treat the scores as a second opinion alongside the rule-based fact check, not as proof.
+- **"Listed" isn't "available".** A model appearing in the inference-profile list doesn't mean the account can call it. Test one call before building on it.
 - **Long jobs need checkpoints.** A browser shell can time out at any moment; saving after each item turned a lost run into a resumable one.
 - **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
 

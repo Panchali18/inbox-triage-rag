@@ -4,9 +4,9 @@ Run in AWS CloudShell from the repo folder, after scripts/run_eval.py:
     pip install -q "ragas==0.2.15" "langchain-aws==0.2.30"
     python3 scripts/run_ragas.py
 
-Judge model: Claude Sonnet 5.5 on Amazon Bedrock, through the EU inference profile, so the data stays in EU regions
-and no extra API key is needed. It is a different, stronger model than the one that wrote the drafts (Nova 2 Lite),
-so the pipeline isn't marking its own work. Gemini's free tier was tried first: its daily limit (20 requests per
+Judge model: Amazon Nova Pro on Bedrock, through the EU inference profile, so the data stays in EU regions and no
+extra API key is needed. It is a larger model than the one that wrote the drafts (Nova 2 Lite), though from the same
+family. Claude models are listed for this account but not available on its free plan (AccessDeniedException). Gemini's free tier was tried first: its daily limit (20 requests per
 model) is too low for RAGAS, which makes several judge calls per email. To use Gemini anyway:
     pip install -q "langchain-google-genai==2.1.5"; RAGAS_MODEL=gemini-3.8-flash python3 scripts/run_ragas.py
 Metrics:
@@ -28,7 +28,7 @@ from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import ContextRelevance, Faithfulness
 
 ROOT = Path(__file__).resolve().parent.parent
-JUDGE = os.environ.get("RAGAS_MODEL", "eu.anthropic.claude-sonnet-5-5")
+JUDGE = os.environ.get("RAGAS_MODEL", "eu.amazon.nova-pro-v1:0")
 REGION = os.environ.get("AWS_REGION_NAME", "eu-north-1")
 
 
@@ -76,6 +76,9 @@ for i, row in enumerate(todo, 1):
     PARTIAL.parent.mkdir(parents=True, exist_ok=True)
     PARTIAL.write_text(json.dumps(list(done.values()), indent=2), encoding="utf-8")
     e = done[row["id"]]
+    if e["faithfulness"] is None and e["context_relevance"] is None:
+        sys.exit(f"  {row['id']}: the judge returned no scores. Check the error above (model access or quota) "
+                 f"before running again; nothing is lost.")
     print(f"  {i}/{len(todo)}  {row['id']}  faithfulness {e['faithfulness']}  context relevance {e['context_relevance']}")
 
 per_email = [done[row["id"]] for row in rows]
@@ -93,8 +96,8 @@ low = [e["id"] for e in per_email if e["faithfulness"] is not None and e["faithf
 table = "\n".join(f"| {e['id']} | {fmt(e['faithfulness'])} | {fmt(e['context_relevance'])} |" for e in per_email)
 report = f"""# RAGAS scores (US-15, AC4)
 
-Judge: `{JUDGE}` on Amazon Bedrock (EU inference profile), a different and stronger model than the one that wrote the
-drafts (Nova 2 Lite). RAGAS 0.2.15. All data is synthetic. Drafts scored: {len(rows)} AI-written replies
+Judge: `{JUDGE}` on Amazon Bedrock (EU inference profile), a larger model than the one that wrote the
+drafts (Nova 2 Lite), from the same family. RAGAS 0.2.15. All data is synthetic. Drafts scored: {len(rows)} AI-written replies
 from the latest evaluation run (templates are excluded, because they're fixed text). Last session's run time {(time.time() - t0) / 60:.0f} minutes.
 
 | Metric | Average | Drafts scored | What it measures |
