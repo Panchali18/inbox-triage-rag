@@ -273,7 +273,7 @@ SERVICE_NAMES = {"form11": "Form 11 tax return", "company_accounts": "Company ac
                  "landlord_rental": "Rental income"}
 
 # What a reviewer may send to a client. Past replies and the internal onboarding checklist are never shared.
-GITHUB_DOCS = "https://github.com/Panchali18/inbox-triage-rag/blob/main/data/kb/"
+CLIENT_PDFS = "https://github.com/Panchali18/inbox-triage-rag/blob/main/docs/client-documents/"   # built by scripts/build_client_pdfs.py
 SHAREABLE = {
     "firm/services-and-fees.md": ("Services and fee guide", "Nore-Valley-Services-and-Fees.pdf"),
     "firm/faq.md": ("Client FAQ", "Nore-Valley-Client-FAQ.pdf"),
@@ -308,7 +308,7 @@ def suggestions(draft_with_tags, passages, facts=()):
         if src in SHAREABLE:
             title, file_name = SHAREABLE[src]
             out.append({"kind": "attachment", "title": title, "file_name": file_name,
-                        "view_url": GITHUB_DOCS + src, "source": src})
+                        "view_url": CLIENT_PDFS + file_name, "source": src})
         elif src.startswith("revenue/") and p.get("url"):
             out.append({"kind": "link", "title": REVENUE_TITLES.get(src.split("/")[-1], "Revenue guidance"),
                         "url": p["url"], "source": src, "in_email": True})
@@ -688,6 +688,11 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
         rec["status"], rec["action"] = "for_accountant", "briefing note" + (" + consultation offer" if not client else "")
     else:  # prospect / admin_question
         rec["draft"], model_amounts = draft_reply(email, cls, client, passages, usage)
+        if t == "prospect" and rec["draft"] and "discovery call" not in rec["draft"].lower():
+            # Every prospect gets the next step, worded as in the fee guide ("How quotes work").
+            rec["draft"] = insert_before_sign_off(rec["draft"], "We offer a free 20-minute discovery call by phone or "
+                                                  "video. Within 3 working days of the call, we send a written "
+                                                  "fixed-fee quote.")
         rec["status"], rec["action"] = "awaiting_review", "draft reply"
 
     rec["guardrail"] = None
