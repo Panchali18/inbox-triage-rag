@@ -292,10 +292,14 @@ REVENUE_TITLES = {
 }
 
 
-def suggestions(draft_with_tags, passages):
-    """Shareable sources the draft actually cites. Firm documents are suggested attachments (the reviewer ticks);
-    Revenue pages are public, so they go in the email as links."""
+def suggestions(draft_with_tags, passages, facts=()):
+    """Shareable sources the draft uses: cited by tag, or containing a fact the fact check found in the draft.
+    Firm documents are suggested attachments (the reviewer ticks); Revenue pages are public, so they become links."""
     cited = set(re.findall(r"\[(S\d+)\]", draft_with_tags or ""))
+    squash = lambda s: re.sub(r"[\s,]", "", s.lower())
+    for p in passages:
+        if any(len(f) > 3 and squash(f) in squash(p["text"]) for f in facts):
+            cited.add(p["ref"])
     out, seen = [], set()
     for p in passages:
         src = p["source"]
@@ -353,8 +357,8 @@ Rules:
 8. Sign off as "Sinéad Kehoe, Practice Manager, Nore Valley Accountants".
 9. Sources from past-replies/ are examples of tone and structure ONLY. Never copy their names, days, times or
    appointment offers. Do not propose specific days or times; offer to arrange a time instead.
-10. Prices: if a PRICE LIST is given, never write a euro amount yourself. Follow the PRICE LIST instructions;
-    the firm's system inserts the exact rows. Do not judge which price applies to the sender: never write "this
+10. Prices: never write a euro amount yourself. If PRICES are given, they are inserted automatically after your
+    first paragraph; don't repeat them. Do not judge which price applies to the sender: never write "this
     would be the fee for you", "the relevant fee for your situation" or similar. The fee is only confirmed in the
     fixed-fee quote after the discovery call.
 11. Never add up, multiply or combine prices into a total.
@@ -396,35 +400,55 @@ def insert_before_sign_off(text, block):
     return text[:i].rstrip() + "\n\n" + block + "\n\n" + text[i:]
 
 
+PRICE_SELECT_SYSTEM = f"""You choose which rows of an accounting firm's price list answer an email. {UNTRUSTED}
+Rules:
+- Choose only rows for services the sender asks about or clearly needs to hear the price of.
+- If more than one row could apply (for example, records organised vs. needing bookkeeping), choose all of them.
+  Never decide which one applies to the sender.
+- If the email doesn't ask about prices or services, choose none.
+Return ONLY JSON: {{"rows": ["P1", "P3"]}} or {{"rows": []}}."""
+
+
+def select_price_rows(email, rows, usage):
+    listing = "\n".join(f"{r['id']}: {r['service']}: {r['fee']}" for r in rows)
+    out = ask_json(PRICE_SELECT_SYSTEM, f"{wrap_email(email)}\n\nPRICE LIST:\n{listing}", usage, max_tokens=100)
+    ids = set(out.get("rows") or [])
+    return [r for r in rows if r["id"] in ids]
+
+
+def insert_after_first_paragraph(text, block):
+    parts = [x for x in re.split(r"\n\s*\n", text.strip()) if x.strip()]
+    at = 2 if parts and re.match(r"^(hi|hello|dear)\b", parts[0], re.I) else 1
+    at = min(at, len(parts))
+    return "\n\n".join(parts[:at] + [block] + parts[at:])
+
+
 def draft_reply(email, cls, client, passages, usage):
+    """Returns (draft, model_amounts). Prices are chosen by a small model call and written by code."""
     rows = price_list(passages)
+    chosen = select_price_rows(email, rows, usage) if rows else []
     price_part = ""
-    if rows:
-        listing = "\n".join(f"{r['id']}: {r['service']}: {r['fee']}" for r in rows)
-        price_part = ("\n\nPRICE LIST (rows you may quote):\n" + listing +
-                      "\nNever write a euro amount yourself. Where the prices belong, write {{PRICES}} on a line of "
-                      "its own. Then end your reply with one final line \"PRICE_ROWS: P1, P3\" naming only the rows "
-                      "that answer what the sender asked, or \"PRICE_ROWS: none\".")
+    if chosen:
+        price_part = ("\n\nPRICES: these lines will be inserted automatically straight after your first paragraph:\n" +
+                      "\n".join(f"- {r['service']}: {r['fee']}" for r in chosen) +
+                      "\nEnd your first paragraph with a short lead-in such as \"Here are our prices:\". Do NOT repeat, "
+                      "restate or calculate any price, and write no euro amounts anywhere in your reply.")
+    elif rows:
+        price_part = "\n\nWrite no euro amounts in your reply."
     user = (f"{wrap_email(email)}\n\n{client_block(client)}\n\n"
             f"Request summary: {cls['extracted'].get('request_summary')}\n\nSOURCES:\n{sources_block(passages)}"
             f"{price_part}")
-    text = ask(DRAFT_SYSTEM, user, usage, max_tokens=700, guardrail=True)
-    if not rows:
-        return text
-    m = PRICE_ROWS_LINE.search(text)
-    chosen_ids = re.findall(r"P\d+", m.group(1)) if m else []
-    text = PRICE_ROWS_LINE.sub("", text)
-    chosen = [r for r in rows if r["id"] in chosen_ids]
-    block = ""
+    text = ask(DRAFT_SYSTEM, user, usage, max_tokens=700)
+    text = re.sub(r"\{\{PRICES\}\}|^\s*PRICE_ROWS:.*$", "", text, flags=re.M | re.I)   # leftovers, if any
+    sender_text = re.sub(r"[\s,]", "", f"{email.get('subject', '')} {email.get('body', '')}".lower())
+    model_amounts = sorted(a for a in set(FACT_PATTERNS[0].findall(text))
+                           if re.sub(r"[\s,]", "", a.lower()) not in sender_text)   # the sender's own figures are fine
     if chosen:
         block = "\n".join(f"- {r['service']}: {r['fee']} [{r['ref']}]" for r in chosen)
         if any("€" in r["fee"] for r in chosen):
             block += "\n\nAll fees exclude VAT."
-    if "{{PRICES}}" in text:
-        text = re.sub(r"[ \t]*\{\{PRICES\}\}[ \t]*", block, text)
-    elif block:
-        text = insert_before_sign_off(text, block)
-    return re.sub(r"\n{3,}", "\n\n", text).strip()
+        text = insert_after_first_paragraph(text, block)
+    return re.sub(r"\n{3,}", "\n\n", text).strip(), model_amounts
 
 
 def consultation_offer(email, passages):
@@ -542,6 +566,9 @@ WORDING_PATTERNS = [
                                       r"knowledge base|faq|policy document)\b|\b(?:as (?:outlined|stated|set out|described|"
                                       r"detailed)|according to|as per) (?:in )?(?:our|the) \w+(?: \w+)?|\bpast repl(?:y|ies)\b|"
                                       r"\bthe sources?\b", re.I)),
+    ("applies a rule to the sender", re.compile(r"\byour (?:deadline|\d{4} (?:income )?tax return)\b|"
+                                              r"\byou (?:must|are obliged to|will need to register|have to register)\b",
+                                              re.I)),
     ("price judgement", re.compile(r"\b(?:relevant|right|applicable) (?:fee|price|cost) for you|\bfor your situation\b|"
                                    r"\b(?:fee|price|cost) (?:that )?(?:applies|would apply) to you|"
                                    r"\b(?:this|that) (?:would be|is) (?:the|your) (?:fee|price|cost)\b|"
@@ -615,6 +642,7 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
     rec["retrieved"] = [{**{k: p[k] for k in ("ref", "source", "score", "url")}, "snippet": p["text"][:400]}
                         for p in passages]
     rec["draft"] = rec["briefing_note"] = rec["checklist"] = None
+    model_amounts = []
     rec["fact_check"] = None
 
     if cls.get("injection_flag"):
@@ -650,7 +678,7 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
             rec["draft"] = consultation_offer(email, passages)
         rec["status"], rec["action"] = "for_accountant", "briefing note" + (" + consultation offer" if not client else "")
     else:  # prospect / admin_question
-        rec["draft"] = draft_reply(email, cls, client, passages, usage)
+        rec["draft"], model_amounts = draft_reply(email, cls, client, passages, usage)
         rec["status"], rec["action"] = "awaiting_review", "draft reply"
 
     rec["guardrail"] = None
@@ -669,9 +697,13 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
         if rec["fact_check"]["unsupported"]:
             flags.append("unsupported_facts")
     rec["wording_check"] = wording_check(rec["draft"]) if rec["draft"] and not is_template else []
+    if rec["draft"] and model_amounts:
+        rec["wording_check"] += [{"issue": "price written by the model", "text": a} for a in model_amounts]
     if rec["wording_check"]:
         flags.append("wording")
-    rec["suggested_attachments"] = suggestions(rec["draft"], passages) if rec["draft"] and not is_template else []
+    used_facts = [f for f in (rec["fact_check"] or {}).get("supported", []) if re.search(r"\d{4}|€\s?\d", f)]
+    rec["suggested_attachments"] = (suggestions(rec["draft"], passages, used_facts)
+                                    if rec["draft"] and not is_template else [])
     links = [s for s in rec["suggested_attachments"] if s["kind"] == "link"]
     if links:
         rec["draft"] = insert_before_sign_off(rec["draft"], "You can read Revenue's guidance here:\n" +
