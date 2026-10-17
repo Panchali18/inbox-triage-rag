@@ -306,7 +306,14 @@ Rules:
 8. Sign off as "Sinéad Kehoe, Practice Manager, Nore Valley Accountants".
 9. Sources from past-replies/ are examples of tone and structure ONLY. Never copy their names, days, times or
    appointment offers. Do not propose specific days or times; offer to arrange a time instead.
-10. State prices as "from" prices exactly as in the sources. Do not judge which price applies to the sender.
+10. State prices as "from" prices exactly as in the sources. Do not judge which price applies to the sender:
+    never write "this would be the fee for you", "the relevant fee for your situation" or similar. The fee is
+    only confirmed in the fixed-fee quote after the discovery call.
+12. Write as the firm speaking in its own voice. Never mention or point to internal material: no "our fee guide",
+    "as outlined in our guide", "according to our policy", "our FAQ", "the sources", "past replies" or "the
+    knowledge base". Say "We offer a free 20-minute discovery call", not "As outlined in our fee guide, we offer...".
+13. Open with "Hi <first name>," and keep it to what was asked. No filler such as "we will do our best to
+    accommodate your schedule".
 11. Never add up, multiply or combine prices into a total. Quote each listed price separately and say a fixed-fee
     quote follows the discovery call.
 Return only the email body."""
@@ -426,6 +433,24 @@ def _num(s):
     return float(re.sub(r"[^\d.]", "", s) or 0)
 
 
+# Wording a reviewer should catch: pointing the client at internal material, or deciding which price applies.
+# Prompt rules 10 and 12 ask for this; this check doesn't rely on the model following them.
+WORDING_PATTERNS = [
+    ("internal reference", re.compile(r"\b(?:our|the) (?:fee guide|fees guide|price list|pricing guide|internal \w+|"
+                                      r"knowledge base|faq|policy document)\b|\b(?:as (?:outlined|stated|set out|described|"
+                                      r"detailed)|according to|as per) (?:in )?(?:our|the) \w+(?: \w+)?|\bpast repl(?:y|ies)\b|"
+                                      r"\bthe sources?\b", re.I)),
+    ("price judgement", re.compile(r"\b(?:relevant|right|applicable) (?:fee|price|cost) for you|\bfor your situation\b|"
+                                   r"\b(?:fee|price|cost) (?:that )?(?:applies|would apply) to you|"
+                                   r"\b(?:this|that) (?:would be|is) (?:the|your) (?:fee|price|cost)\b|"
+                                   r"\byou (?:would|will) (?:pay|be charged)\b", re.I)),
+]
+
+
+def wording_check(draft: str) -> list:
+    return [{"issue": issue, "text": m.group(0)} for issue, pat in WORDING_PATTERNS for m in pat.finditer(draft or "")]
+
+
 def fact_check(draft: str, passages, client, email=None) -> dict:
     # Facts the sender stated themselves (e.g. "turnover around €600k") are allowed to be repeated back.
     sender_text = f"{(email or {}).get('subject', '')} {(email or {}).get('body', '')}"
@@ -541,6 +566,9 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
         rec["fact_check"] = fact_check(rec["draft"], passages, client, email)
         if rec["fact_check"]["unsupported"]:
             flags.append("unsupported_facts")
+    rec["wording_check"] = wording_check(rec["draft"]) if rec["draft"] and not is_template else []
+    if rec["wording_check"]:
+        flags.append("wording")
     rec["draft_with_sources"] = rec["draft"]          # audit copy, keeps [S1] tags
     rec["draft"] = client_version(rec["draft"])       # what the reviewer edits and the client would receive
     if "low_confidence" in flags and rec["status"] == "awaiting_review":

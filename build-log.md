@@ -312,6 +312,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 - **Secure front end live in preview:** the API key was rotated (`rotate_api_key.sh`, old key deleted) and stored as an encrypted server-side secret in Lovable. The app calls the API through the server proxy, so the key is no longer in browser code. Checklists now show document names, and the advice banner has the new wording.
 - **No search for documents emails:** testing Wojciech's documents email in the app showed a "Sources used" box with 5 passages, although the reply came from a template and the client's checklist. The pipeline now skips retrieval for documents emails, unless they also contain an advice question (then the briefing note needs the guidance).
+- **Drafts pointed at internal documents and judged the price:** Liam's quote said "As outlined in our fee guide…" and "this would be the relevant fee for your situation", promising €450 before anyone had seen his records. The prompt already banned judging which price applies; the model ignored it. Added prompt rules (speak as the firm, never mention internal material, open with "Hi <name>") and a rule-based **wording check** that flags internal references and price judgements in every AI-written draft (`wording_check`, flag `wording`).
 
 ### Decided
 - **Keep RAG.** It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
@@ -321,6 +322,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **At small scale, the difference is modest.** Prompt-stuffing still worked, cost a third of a cent and wasn't slower. The case for RAG here is accuracy and growth, not speed. Say so honestly rather than overselling it.
 - **The safety layers are mode-independent.** The fact check and the guardrail caught the stuffing errors too, so neither design let an unchecked error reach a reviewer.
 - **T06 combined prices in both modes, with different totals.** More evidence that the payroll quote needs a template.
+- **A reply can be factually right and still wrong for a client.** Every fact in Liam's draft was in the fee guide, so the fact check passed it. Tone and commitments ("the relevant fee for you") need their own check.
 - **Show sources only where they were used.** A sources box beside a template reply suggests the reply was based on those passages. Showing evidence that wasn't used is misleading, even if it's harmless.
 
 ### Next session: resume checklist
