@@ -343,6 +343,12 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 | "View" opened the Markdown source on GitHub | The first link pointed at the knowledge-base file | Built branded client PDFs and pointed "View" at them |
 | "View" still opened the old page after the fix | That email was processed before the update; each email keeps the link it was given | Submitted a new email |
 | Planned a knowledge-base re-sync to mark shareable documents | It would cost a sync and a step for no visible gain | Kept the shareable list in code; moving it into metadata is on the v2 list |
+| Evaluation run 6 had T07 "unsupported" facts ("20-minute", "3 working days") | Code added the discovery-call sentence, but the fee guide wasn't among T07's retrieved passages, so the fact check couldn't find those facts | When code adds the sentence, it also fetches the fee guide's "How quotes work" section from the knowledge base, so the facts are backed and visible to the reviewer |
+| A loose fallback for Revenue links (link a Revenue page whenever a draft mentions Revenue) | Would add irrelevant links to prospect replies that just mention Revenue | Reverted. A source counts as used when the draft contains a date from it, even without the year |
+| RAGAS: the `read -s` key prompt didn't wait, and the key was pasted as a command and shown on screen | A fiddly way to enter a secret | The key was deleted and replaced. The script now asks for the key itself, hidden |
+| RAGAS: `gemini-2.5-flash` returned 404 | Closed to new API keys | Switched to `gemini-3.8-flash` |
+| RAGAS: CloudShell signed out mid-run, and the installed packages were cleared | CloudShell sessions time out; results were only saved at the end | The script now saves after every email and resumes; packages are reinstalled in one line |
+| **RAGAS: Gemini's free tier hit its daily limit** (20 requests per model per day; retry in 10 hours) | RAGAS makes several judge calls per email (about 60–80 for 13 drafts) | **Switched the judge to Claude Sonnet 5.5 on Bedrock** (EU profile): no extra key, data stays in EU regions, about $1 or less of credits, and a different, stronger model than the generator |
 | Proposed "Sources found / Used" labels on screen | Not needed for the demo | Dropped, and added to the v2 list as an idea |
 
 ### Decided
@@ -361,6 +367,9 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **Prompts are still not guarantees.** Even with explicit rules and a bad-and-good example, the model sometimes writes a price, invents a date or addresses the sender. The checks in code are what make it safe; the prompt only makes it less frequent.
 - **Not every source is shareable.** Past replies contain other clients' details, and the onboarding checklist describes the internal identity-check process. Retrieval doesn't care; the sharing rule has to.
 - **"Sources used" usually means "sources found".** A RAG screen shows what the search returned, not what the answer relied on. In Tom's quote, 4 passages were listed; 1 supplied the facts, 1 the tone, and 2 weren't used. The similarity score (0 to 1) ranks passages; it isn't a percentage, and the most useful source isn't always first.
+- **Free tiers are for trying, not for evaluation.** Gemini's free tier allowed 20 requests per model per day, and RAGAS needs several judge calls per email. Check the rate limits of a judge model against the number of calls before choosing it. Here, the judge already available in the same cloud (Bedrock) was cheaper in time, simpler (no extra key) and better for data residency.
+- **The judge should be a different, stronger model than the one being judged.** Claude Sonnet 5.5 judges drafts written by Nova 2 Lite.
+- **Long jobs need checkpoints.** A browser shell can time out at any moment; saving after each item turned a lost run into a resumable one.
 - **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
 
 ### Next session: resume checklist
