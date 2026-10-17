@@ -25,7 +25,7 @@ from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import ContextRelevance, Faithfulness
 
 ROOT = Path(__file__).resolve().parent.parent
-JUDGE = os.environ.get("RAGAS_MODEL", "gemini-2.5-flash")
+JUDGE = os.environ.get("RAGAS_MODEL", "gemini-3.8-flash")   # gemini-2.5-flash is closed to new API keys
 
 if not os.environ.get("GOOGLE_API_KEY"):
     key = getpass.getpass("Paste your Gemini API key and press Enter (nothing will show while you paste): ").strip()
