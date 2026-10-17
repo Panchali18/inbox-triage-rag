@@ -436,7 +436,9 @@ def draft_reply(email, cls, client, passages, usage):
                       "or amounts. Bad: \"Our Form 11 return starts from €450 when records are organised.\" Good: "
                       "\"Thanks for getting in touch about your tax return.\" Don't write a lead-in such as \"Here are "
                       "our prices\"; the system adds it. Do NOT repeat, restate or calculate any price, and write no euro "
-                      "amounts anywhere in your reply.")
+                      "amounts anywhere in your reply." +
+                      ("" if needs_discovery_call(chosen) else " All of these prices are fixed, so don't offer a "
+                       "discovery call; invite them to reply if they'd like to go ahead."))
     elif rows:
         price_part = "\n\nWrite no euro amounts in your reply."
     user = (f"{wrap_email(email)}\n\n{client_block(client)}\n\n"
@@ -474,6 +476,25 @@ def quote_steps_passage(n):
     return None
 
 
+def needs_discovery_call(price_rows):
+    """The fee guide's process: a "from" price becomes a fixed quote after the discovery call. If every quoted price
+    is already fixed (for example a €60 bank letter), a call before quoting would sound odd."""
+    return not price_rows or any(r["fee"].lower().startswith("from") for r in price_rows)
+
+
+def call_sentence(price_rows, tag=""):
+    """Next step for a prospect, in the fee guide's words. Softer for a sole trader's tax return."""
+    if not needs_discovery_call(price_rows):
+        return "If you'd like to go ahead, just reply to this email and we'll arrange it."
+    sole_trader = price_rows and all(re.search(r"form 11|income tax return|landlord|rental", r["service"], re.I)
+                                     for r in price_rows)
+    if sole_trader:
+        return ("We offer a quick, free 20-minute call by phone or video to confirm your quote. Within 3 working "
+                f"days of the call, we send a written fixed-fee quote.{tag}")
+    return ("We offer a free 20-minute discovery call by phone or video, where we can go through what you need. "
+            f"Within 3 working days of the call, we send a written fixed-fee quote.{tag}")
+
+
 def safe_prospect_reply(email, price_rows, passages):
     """Fallback when the guardrail blocks an AI draft for a prospect: fixed wording, prices and next step only.
     Nothing here is written by a model, so there is nothing to block; the reviewer still gets a usable reply."""
@@ -484,13 +505,13 @@ def safe_prospect_reply(email, price_rows, passages):
         if any("€" in r["fee"] for r in price_rows):
             block += "\n\nAll fees exclude VAT."
         parts.append(block)
-    how = quote_steps_passage(len(passages) + 1)
     tag = ""
-    if how:
-        passages.append(how)
-        tag = f" [{how['ref']}]"
-    parts.append("We offer a free 20-minute discovery call by phone or video, where we can go through what you need. "
-                 f"Within 3 working days of the call, we send a written fixed-fee quote.{tag}")
+    if needs_discovery_call(price_rows):
+        how = quote_steps_passage(len(passages) + 1)
+        if how:
+            passages.append(how)
+            tag = f" [{how['ref']}]"
+    parts.append(call_sentence(price_rows, tag))
     parts.append("Kind regards,\n\nSinéad Kehoe\nPractice Manager, Nore Valley Accountants")
     return "\n\n".join(parts)
 
@@ -725,7 +746,8 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
         rec["status"], rec["action"] = "for_accountant", "briefing note" + (" + consultation offer" if not client else "")
     else:  # prospect / admin_question
         rec["draft"], model_amounts, price_rows = draft_reply(email, cls, client, passages, usage)
-        if t == "prospect" and rec["draft"] and "discovery call" not in rec["draft"].lower():
+        if (t == "prospect" and rec["draft"] and needs_discovery_call(price_rows)
+                and not re.search(r"\b20-minute\b.*\bcall\b|discovery call", rec["draft"], re.I | re.S)):
             # Every prospect gets the next step, worded as in the fee guide ("How quotes work"). The passage is
             # fetched from the knowledge base, so the fact check and the reviewer can see where it comes from.
             how = quote_steps_passage(len(passages) + 1)
@@ -733,13 +755,9 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
                 passages.append(how)
                 rec["retrieved"].append({**{k: how[k] for k in ("ref", "source", "score", "url")},
                                          "snippet": how["text"][:400], **({"text": how["text"]} if dry_run else {})})
-                rec["draft"] = insert_before_sign_off(rec["draft"], f"We offer a free 20-minute discovery call by "
-                                                      f"phone or video. Within 3 working days of the call, we send a "
-                                                      f"written fixed-fee quote. [{how['ref']}]")
+                rec["draft"] = insert_before_sign_off(rec["draft"], call_sentence(price_rows, f" [{how['ref']}]"))
             else:   # passage not found: still offer the next step; the fact check will show it as unsupported
-                rec["draft"] = insert_before_sign_off(rec["draft"], "We offer a free 20-minute discovery call by phone "
-                                                      "or video. Within 3 working days of the call, we send a written "
-                                                      "fixed-fee quote.")
+                rec["draft"] = insert_before_sign_off(rec["draft"], call_sentence(price_rows))
         rec["status"], rec["action"] = "awaiting_review", "draft reply"
 
     rec["guardrail"] = None

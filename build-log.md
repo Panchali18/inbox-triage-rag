@@ -331,7 +331,9 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 **11. Safe standard reply when a prospect's draft is blocked.** Mateus (T05) is blocked by the guardrail in every run, because the model tells him "you will need to register for Income Tax". The block was right, but it left Sinéad with nothing to send to a prospect who asked for a price. Now, when a prospect's AI draft is blocked, the reviewer gets a standard reply built only from fixed wording, the code-inserted prices and the fee guide's next step, with an amber note: "The AI draft was blocked as tax advice, so the standard reply is shown". The blocked draft stays in the audit record.
 
-**12. RAGAS judge sees the full context.** The judge now also gets the client record, the firm's name and signatory, and the sender's email, which the drafting model had too. The report lists the drafts that score below 0.80, so they can be read.
+**12. The next step fits the price.** Following a question about whether everyone needs a discovery call: the call is the fee guide's process for turning a "from" price into a fixed quote, so it stays for "from" prices. If every quoted price is fixed (such as the €60 bank letter), the reply invites the sender to reply to go ahead instead. For a sole trader's tax return, the wording is softer: "a quick, free 20-minute call to confirm your quote".
+
+**13. RAGAS judge sees the full context.** The judge now also gets the client record, the firm's name and signatory, and the sender's email, which the drafting model had too. The report lists the drafts that score below 0.80, so they can be read.
 
 **Final checks (T01, T06, T11):**
 - **T01 (Liam) and T06 (Tom):** prices once, word for word, no totals, no "fee guide" wording, the discovery call included. The fee guide is suggested as an attachment, and "View" opens the PDF.
