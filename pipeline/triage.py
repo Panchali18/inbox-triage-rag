@@ -648,7 +648,9 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
     else:
         passages = retrieve(email, cls)
     rec["mode"] = mode
-    rec["retrieved"] = [{**{k: p[k] for k in ("ref", "source", "score", "url")}, "snippet": p["text"][:400]}
+    rec["retrieved"] = [{**{k: p[k] for k in ("ref", "source", "score", "url")}, "snippet": p["text"][:400],
+                         # Full passage text only in evaluation runs (needed for RAGAS); the API stores snippets.
+                         **({"text": p["text"]} if dry_run else {})}
                         for p in passages]
     rec["draft"] = rec["briefing_note"] = rec["checklist"] = None
     model_amounts = []

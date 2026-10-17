@@ -98,6 +98,11 @@ misses = [f"| {x['id']} | {', '.join(x['expected']['expected_sources'])} | "
 cl_bad = [f"| {x['id']} | {x['expected']['checklist_matches']} | {x['result']['checklist']} |" for x in cl if x not in cl_ok]
 misclassified = [f"| {x['id']} | {x['expected']['type']} | {x['result']['classification']['type']} | "
                  f"{x['result']['classification'].get('reason','')} |" for x in ok if x not in cls_ok]
+wording = [(x["id"], w["issue"]) for x in ok for w in (x["result"].get("wording_check") or [])]
+prospects = [x for x in ok if x["result"]["classification"]["type"] == "prospect" and x["result"].get("draft")]
+prospect_call = [x for x in prospects if "discovery call" in x["result"]["draft"].lower()]
+suggested = [(x["id"], [s["title"] for s in x["result"]["suggested_attachments"]])
+             for x in ok if x["result"].get("suggested_attachments")]
 report = f"""# Evaluation report
 
 Mode: **{MODE}**. Model: `{MODEL_ID}`. Emails run: {len(results)} ({len(results) - len(ok)} errors). Generated {time.strftime('%Y-%m-%d %H:%M')}.
@@ -122,6 +127,9 @@ Mode: **{MODE}**. Model: `{MODEL_ID}`. Emails run: {len(results)} ({len(results)
 | Drafts produced | {len(drafts)} | |
 | Unsupported facts flagged in drafts | {len(unsupported)} {unsupported} | 0 reaching approval |
 | Calculated amounts (for human check) | {len(calculated)} {calculated} | |
+| Wording warnings (internal reference, price judgement, model-written price, rule applied to sender) | {len(wording)} {wording} | low, all visible to the reviewer |
+| Prospect replies offering the discovery call | {pct(len(prospect_call), len(prospects))} | 100% |
+| Drafts with suggested attachments or links | {len(suggested)} {suggested} | |
 | Tokens (input / output) | {tin:,} / {tout:,} | |
 | Cost for the run | ${cost:.4f} (about ${cost / max(len(ok), 1):.5f} per email) | |
 | Latency per email (median / max) | {lat[len(lat)//2] if lat else 0} ms / {lat[-1] if lat else 0} ms | under 29,000 ms |
