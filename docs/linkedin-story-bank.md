@@ -5,7 +5,8 @@ Raw material for the "AI Build" series. Each story gives what happened, the evid
 **Status:**
 - Pipeline, API, guardrail and evaluation (5 runs): done.
 - RAG vs prompt-stuffing comparison: done (`eval/rag-vs-stuffing.md`).
-- Secure front end (key on the server): **pending**.
+- Secure front end (key on the server): built and tested in preview; **publishing pending**.
+- RAGAS scores: done (`eval/ragas-run-2.md`).
 
 ---
 
@@ -220,4 +221,4 @@ It never gives tax advice: advice questions go to an accountant.
 ## Wording reminders
 - Say "synthetic data" and "demonstration only" in every post.
 - Don't name Revenue as a partner or endorser. "Uses public Revenue.ie guidance under CC BY 4.0" is fine.
-- Don't call unfinished items done: the secure front end is still pending.
+- Don't call unfinished items done: the secure front end works in preview but isn't published yet, and the T13/T14 knowledge gaps are still open.
