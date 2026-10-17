@@ -475,7 +475,10 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
     rec["flags"], rec["urgency"] = flags, cls.get("urgency", "normal")
     rec["assigned_to"], rec["routing_reason"] = route(t, flags, client)
 
-    if t == "spam_or_supplier":
+    # A documents email is answered from the client's checklist and a template, so it needs no
+    # sources unless it also asks an advice question (then the briefing note quotes the guidance).
+    is_documents = t == "documents_sent" or bool(client and rec["attachments"] and t in ("advice_question", "admin_question"))
+    if t == "spam_or_supplier" or (is_documents and not cls.get("advice_flag")):
         passages = []
     elif mode == "stuffing":
         passages = all_documents()
@@ -494,7 +497,7 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
     elif t == "revenue_or_penalty":
         rec["briefing_note"] = briefing_note(email, cls, client, passages, usage)
         rec["status"], rec["action"] = "urgent_for_accountant" if rec["urgency"] == "high" else "for_accountant", "briefing note"
-    elif t == "documents_sent" or (client and rec["attachments"] and t in ("advice_question", "admin_question")):
+    elif is_documents:
         # Multi-intent: a client sending files is always logged, even if they also ask something.
         result = match_documents(email, client, usage)
         rec["checklist"] = result
