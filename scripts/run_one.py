@@ -40,4 +40,8 @@ for tid in sys.argv[1:] or ["T01"]:
         print("\n  --- BLOCKED draft (audit only) ---\n" + r["blocked_draft"])
     if r["fact_check"]:
         print(f"\n  fact check: {r['fact_check']}")
+    if r.get("wording_check"):
+        print(f"  wording   : {r['wording_check']}")
+    if r.get("suggested_attachments"):
+        print(f"  suggested : {[(s['kind'], s['title']) for s in r['suggested_attachments']]}")
     print(f"\n  usage     : {r['usage']}  latency {r['latency_ms']} ms")

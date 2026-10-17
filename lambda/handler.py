@@ -138,6 +138,11 @@ def handler(event, context):
             if decision in ("approve", "edit"):
                 expr += ", final_client_text = :f"   # what would be sent: no source tags
                 update[":f"] = client_version(final)
+                # Attachments the reviewer ticked: only titles from this email's suggestions are accepted.
+                allowed = {s.get("title") for s in item.get("suggested_attachments") or [] if s.get("kind") == "attachment"}
+                chosen = [a for a in body.get("attachments") or [] if a in allowed]
+                expr += ", final_attachments = :a"
+                update[":a"] = chosen
             _emails.update_item(Key={"email_id": parts[1]}, UpdateExpression=expr,
                                 ExpressionAttributeNames={"#s": "status"}, ExpressionAttributeValues=_to_ddb(update))
             _log("decision", email_id=parts[1], decision=decision, override=bool(body.get("override")))

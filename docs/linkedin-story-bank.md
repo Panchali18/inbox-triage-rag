@@ -163,6 +163,24 @@ It never gives tax advice: advice questions go to an accountant.
 - **Lesson:** production concerns show up even in a demo. Build for quotas from day one.
 - **Evidence:** `eval/run-3-routing.md`.
 
+## 16. "The AI picks the price, code writes it"
+- **What happened:** the model kept getting quotes subtly wrong. It combined payroll prices into totals (three runs out of three), and told a prospect "this would be the relevant fee for your situation" before anyone had seen his records. Prompt rules against both were ignored.
+- **Fix:** the model now chooses which rows of the fee guide answer the question, and code inserts those rows word for word. The model never writes a euro amount.
+- **Lesson:** for anything that must be exact, let the AI select and let code write. Keep the model for the wording around the facts.
+- **Evidence:** `pipeline/triage.py` (`price_list`, `draft_reply`), `build-log.md` day 3.
+
+## 17. "Suggest, don't attach"
+- **What happened:** I asked whether the reply could include the documents it was based on. Most sources can't be shared: past replies contain other clients' details, and the onboarding checklist describes internal checks.
+- **Design:** only client-facing documents the draft actually cites are suggested, as unticked boxes. Revenue pages are public, so they go in as links. The reviewer decides, and the approval records the choice.
+- **Lesson:** retrieval doesn't know what's confidential. Sharing rules need to be designed separately from search.
+- **Evidence:** `scope.md` US-21, `build-log.md` day 3.
+
+## 18. "Right facts, wrong reply"
+- **What happened:** a quote passed the fact check, because every number was in the fee guide. But it said "As outlined in our fee guide…" to a stranger, and promised him the cheapest price based on one sentence.
+- **Fix:** a wording check that flags internal references and price judgements, alongside the fact check.
+- **Lesson:** grounded isn't the same as appropriate. Check tone and commitments, not only facts.
+- **Evidence:** `pipeline/triage.py` (`wording_check`), `build-log.md` day 3.
+
 ---
 
 ## Numbers you can quote (all synthetic, run 5 unless stated)

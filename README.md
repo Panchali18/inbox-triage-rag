@@ -4,7 +4,7 @@
 
 An AI pipeline that triages the shared inbox of a small accounting practice. It classifies each email, looks up the sender, retrieves the relevant firm policy and Revenue guidance, and drafts a grounded reply for a human to approve. Advice questions always go to an accountant.
 
-> **Status: in progress.** Built and evaluated: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison. Remaining: the secure front-end version and the recording. See [build-log.md](build-log.md) for progress, decisions and learnings.
+> **Status: in progress.** Built and evaluated: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison. Remaining: the evaluation of today's changes, RAGAS scores and the recording. See [build-log.md](build-log.md) for progress, decisions and learnings.
 
 ---
 
@@ -42,6 +42,8 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 - The AI requests identity documents from the checklist, but never decides on anti-money-laundering verification. Only a partner does that.
 - Email content is untrusted data, because of the prompt-injection risk.
 - If no source answers a question, the draft says so. It never guesses.
+- The AI chooses which fee rows apply; code writes the prices word for word. The model never writes a euro amount.
+- The system suggests documents and links, but only a person decides what reaches a client.
 
 ---
 
@@ -58,7 +60,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | Pipeline | AWS Lambda (Python 3.12, arm64), `inbox-triage-v1-api` | ✅ Deployed |
 | API | Amazon API Gateway REST API with an API key and usage plan (2 req/s, 300/day) | ✅ Deployed |
 | Safety | Amazon Bedrock Guardrails: denied topic "personal tax advice", PII masking (cards, IBAN, passwords, Irish PPSN), applied to drafts only | ✅ Live and tuned |
-| Front end | Lovable (React): shared inbox, personal mailboxes, clean draft, client context panel | ✅ Working (key-in-browser version). Server-side-key version pending. |
+| Front end | Lovable (React): shared inbox, personal mailboxes, clean draft, client context panel, suggested attachments | ✅ API key held server-side, never in the browser |
 | Evaluation | Custom test set of 40 labelled emails, 5 runs, plus a RAG vs prompt-stuffing comparison (see `eval/`) | ✅ Done |
 | Observability | Amazon CloudWatch structured logs (type, routing, tokens, latency; no email bodies) | ✅ |
 

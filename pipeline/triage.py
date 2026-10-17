@@ -268,6 +268,52 @@ def sources_block(passages):
     return "\n\n".join(lines)
 
 
+SERVICE_NAMES = {"form11": "Form 11 tax return", "company_accounts": "Company accounts", "vat": "VAT returns",
+                 "payroll": "Payroll", "bookkeeping_monthly": "Monthly bookkeeping",
+                 "landlord_rental": "Rental income"}
+
+# What a reviewer may send to a client. Past replies and the internal onboarding checklist are never shared.
+GITHUB_DOCS = "https://github.com/Panchali18/inbox-triage-rag/blob/main/data/kb/"
+SHAREABLE = {
+    "firm/services-and-fees.md": ("Services and fee guide", "Nore-Valley-Services-and-Fees.pdf"),
+    "firm/faq.md": ("Client FAQ", "Nore-Valley-Client-FAQ.pdf"),
+    "firm/engagement-terms.md": ("Terms of engagement", "Nore-Valley-Terms-of-Engagement.pdf"),
+}
+REVENUE_TITLES = {
+    "01-pay-and-file-system.md": "Pay and file system: how does it work?",
+    "02-what-is-preliminary-tax.md": "What is preliminary tax?",
+    "03-who-should-register-for-self-assessment.md": "Who should register for Income Tax self-assessment?",
+    "04-register-for-tax-as-a-sole-trader.md": "How to register for tax as a sole trader",
+    "05-register-for-tax-as-a-new-company.md": "How to register for tax as a new company",
+    "06-who-should-register-for-vat.md": "Who should register for VAT?",
+    "07-vat-thresholds.md": "What are the VAT thresholds?",
+    "08-corporation-tax-payment-and-filing.md": "Corporation Tax payment and filing",
+    "09-when-is-preliminary-ct-due.md": "When is preliminary Corporation Tax due?",
+}
+
+
+def suggestions(draft_with_tags, passages):
+    """Shareable sources the draft actually cites. Firm documents are suggested attachments (the reviewer ticks);
+    Revenue pages are public, so they go in the email as links."""
+    cited = set(re.findall(r"\[(S\d+)\]", draft_with_tags or ""))
+    out, seen = [], set()
+    for p in passages:
+        src = p["source"]
+        if p["ref"] not in cited or src in seen:
+            continue
+        if src in SHAREABLE:
+            title, file_name = SHAREABLE[src]
+            out.append({"kind": "attachment", "title": title, "file_name": file_name,
+                        "view_url": GITHUB_DOCS + src, "source": src})
+        elif src.startswith("revenue/") and p.get("url"):
+            out.append({"kind": "link", "title": REVENUE_TITLES.get(src.split("/")[-1], "Revenue guidance"),
+                        "url": p["url"], "source": src, "in_email": True})
+        else:
+            continue
+        seen.add(src)
+    return out
+
+
 def client_card(client):
     """Snapshot for the reviewer's context panel (US-20). Outstanding items as readable names."""
     if not client:
@@ -275,7 +321,8 @@ def client_card(client):
     codes = {**(client.get("onboarding_checklist") or {}), **(client.get("annual_checklist") or {})}
     return {"client_id": client["client_id"], "name": client["name"], "client_type": client.get("client_type"),
             "business_name": client.get("business_name"), "business_activity": client.get("business_activity"),
-            "services": client.get("services"), "assigned_accountant": client.get("assigned_accountant"),
+            "services": [SERVICE_NAMES.get(s, s) for s in client.get("services") or []],
+            "assigned_accountant": client.get("assigned_accountant"),
             "partner": client.get("partner"), "onboarding_status": client.get("onboarding_status"),
             "outstanding": [CHECKLIST_NAMES.get(c, c) for c, v in codes.items() if v == "outstanding"]}
 
@@ -306,23 +353,78 @@ Rules:
 8. Sign off as "Sinéad Kehoe, Practice Manager, Nore Valley Accountants".
 9. Sources from past-replies/ are examples of tone and structure ONLY. Never copy their names, days, times or
    appointment offers. Do not propose specific days or times; offer to arrange a time instead.
-10. State prices as "from" prices exactly as in the sources. Do not judge which price applies to the sender:
-    never write "this would be the fee for you", "the relevant fee for your situation" or similar. The fee is
-    only confirmed in the fixed-fee quote after the discovery call.
+10. Prices: if a PRICE LIST is given, never write a euro amount yourself. Follow the PRICE LIST instructions;
+    the firm's system inserts the exact rows. Do not judge which price applies to the sender: never write "this
+    would be the fee for you", "the relevant fee for your situation" or similar. The fee is only confirmed in the
+    fixed-fee quote after the discovery call.
+11. Never add up, multiply or combine prices into a total.
 12. Write as the firm speaking in its own voice. Never mention or point to internal material: no "our fee guide",
     "as outlined in our guide", "according to our policy", "our FAQ", "the sources", "past replies" or "the
     knowledge base". Say "We offer a free 20-minute discovery call", not "As outlined in our fee guide, we offer...".
 13. Open with "Hi <first name>," and keep it to what was asked. No filler such as "we will do our best to
     accommodate your schedule".
-11. Never add up, multiply or combine prices into a total. Quote each listed price separately and say a fixed-fee
-    quote follows the discovery call.
+14. Match the sender's language. If they write briefly, simply or in basic English, reply with short sentences
+    and everyday words (say "tax return", not "self-assessment filing obligations").
 Return only the email body."""
 
 
+FEE_ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$", re.M)
+PRICE_ROWS_LINE = re.compile(r"^\s*PRICE_ROWS:\s*(.*)$", re.I | re.M)
+SIGN_OFF = re.compile(r"^(?:kind regards|best regards|regards|many thanks|best wishes|thanks|warm regards)\b", re.I | re.M)
+
+
+def price_list(passages):
+    """Fee rows, verbatim, from the fee-guide passages that were retrieved. The model picks rows; code writes them."""
+    rows, seen = [], set()
+    for p in passages:
+        if not p["source"].endswith("services-and-fees.md"):
+            continue
+        for service, fee in FEE_ROW.findall(p["text"]):
+            if service.lower() == "service" or set(fee) <= set("-: ") or (service, fee) in seen:
+                continue
+            if "€" in fee or fee.lower() in ("free", "included") or fee.lower().startswith("quoted"):
+                seen.add((service, fee))
+                rows.append({"id": f"P{len(rows) + 1}", "service": service, "fee": fee, "ref": p["ref"]})
+    return rows
+
+
+def insert_before_sign_off(text, block):
+    m = list(SIGN_OFF.finditer(text))
+    if not m:
+        return text.rstrip() + "\n\n" + block
+    i = m[-1].start()
+    return text[:i].rstrip() + "\n\n" + block + "\n\n" + text[i:]
+
+
 def draft_reply(email, cls, client, passages, usage):
+    rows = price_list(passages)
+    price_part = ""
+    if rows:
+        listing = "\n".join(f"{r['id']}: {r['service']}: {r['fee']}" for r in rows)
+        price_part = ("\n\nPRICE LIST (rows you may quote):\n" + listing +
+                      "\nNever write a euro amount yourself. Where the prices belong, write {{PRICES}} on a line of "
+                      "its own. Then end your reply with one final line \"PRICE_ROWS: P1, P3\" naming only the rows "
+                      "that answer what the sender asked, or \"PRICE_ROWS: none\".")
     user = (f"{wrap_email(email)}\n\n{client_block(client)}\n\n"
-            f"Request summary: {cls['extracted'].get('request_summary')}\n\nSOURCES:\n{sources_block(passages)}")
-    return ask(DRAFT_SYSTEM, user, usage, max_tokens=700, guardrail=True)
+            f"Request summary: {cls['extracted'].get('request_summary')}\n\nSOURCES:\n{sources_block(passages)}"
+            f"{price_part}")
+    text = ask(DRAFT_SYSTEM, user, usage, max_tokens=700, guardrail=True)
+    if not rows:
+        return text
+    m = PRICE_ROWS_LINE.search(text)
+    chosen_ids = re.findall(r"P\d+", m.group(1)) if m else []
+    text = PRICE_ROWS_LINE.sub("", text)
+    chosen = [r for r in rows if r["id"] in chosen_ids]
+    block = ""
+    if chosen:
+        block = "\n".join(f"- {r['service']}: {r['fee']} [{r['ref']}]" for r in chosen)
+        if any("€" in r["fee"] for r in chosen):
+            block += "\n\nAll fees exclude VAT."
+    if "{{PRICES}}" in text:
+        text = re.sub(r"[ \t]*\{\{PRICES\}\}[ \t]*", block, text)
+    elif block:
+        text = insert_before_sign_off(text, block)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
 def consultation_offer(email, passages):
@@ -569,6 +671,11 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
     rec["wording_check"] = wording_check(rec["draft"]) if rec["draft"] and not is_template else []
     if rec["wording_check"]:
         flags.append("wording")
+    rec["suggested_attachments"] = suggestions(rec["draft"], passages) if rec["draft"] and not is_template else []
+    links = [s for s in rec["suggested_attachments"] if s["kind"] == "link"]
+    if links:
+        rec["draft"] = insert_before_sign_off(rec["draft"], "You can read Revenue's guidance here:\n" +
+                                              "\n".join(f"- {s['title']} – {s['url']}" for s in links))
     rec["draft_with_sources"] = rec["draft"]          # audit copy, keeps [S1] tags
     rec["draft"] = client_version(rec["draft"])       # what the reviewer edits and the client would receive
     if "low_confidence" in flags and rec["status"] == "awaiting_review":

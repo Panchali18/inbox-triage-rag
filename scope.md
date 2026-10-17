@@ -19,6 +19,7 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 | 2 | Bedrock Guardrail (denied topic, PII masking) | ✅ Done and tuned (15 Oct) |
 | 3 | Evaluation | ✅ Runs 1–5 done (15 Oct) |
 | 3 | RAG vs prompt-stuffing comparison | ✅ Done (17 Oct): RAG 97% grounded vs 89%, 2.4× cheaper (`eval/rag-vs-stuffing.md`) |
+| 3 | Secure front end (key server-side), suggested attachments, prices by code (US-21, US-22) | 🔄 In progress (17 Oct) |
 | 3 | Final README, recording, LinkedIn post | ⏳ Not started (story bank ready in `docs/`) |
 
 ## Personas
@@ -177,6 +178,18 @@ As a reviewer, I want to see who the sender is and our recent history with them,
 - AC2: It lists this sender's previous emails handled by the system: date, subject, type and outcome.
 - AC3: No AI-written explanations ("what this email is", "what the draft is based on"), to keep the screen simple.
 
+**US-21 Suggested attachments and links** *(added 17 Oct)*
+As a reviewer, I want the system to suggest documents and links the client may need, so that I can include them without hunting for them.
+- AC1: Only sources the draft actually cites are suggested. Only client-facing documents can be suggested (fee guide, FAQ, terms of engagement). Past replies and the internal onboarding checklist never are.
+- AC2: Firm documents are suggestions with unticked boxes. Nothing is attached unless the reviewer ticks it, and the approval records what was ticked.
+- AC3: Revenue pages are public, so they are added to the email as links, and the reviewer can still edit them out.
+- AC4: Documents emails and template replies get no suggestions, because they use no sources.
+
+**US-22 Prices written by code, not the model** *(added 17 Oct)*
+As the practice, I want every price in a draft copied exactly from the fee guide, so that no client is quoted an invented or combined figure.
+- AC1: The model chooses which fee rows answer the question. Code inserts those rows word for word, with "All fees exclude VAT."
+- AC2: The model never writes a euro amount itself. Any amount it does write is still fact-checked and flagged.
+
 ### Operate and evaluate
 
 **US-14 Observability**
@@ -224,8 +237,8 @@ As the builder, I want costs capped and resources tagged so that the project doe
 
 ## Open questions
 
-- **OQ-1 Targets.** What is the classification accuracy target (I'd suggest at least 90%)? And should advice detection be held to 100% recall, like urgent items? I'd recommend yes, because one missed advice question breaks the main design rule.
-- **OQ-2 Low confidence.** Should a low-confidence email go to `needs_human_triage` (my recommendation) or be forced into one of the six types? If routing, what threshold?
+- ~~**OQ-1 Targets.**~~ **Decided:** classification at least 90%; urgent items and advice detection held to 100% recall. These are the targets used in every evaluation report. Original question: What is the classification accuracy target (I'd suggest at least 90%)? And should advice detection be held to 100% recall, like urgent items? I'd recommend yes, because one missed advice question breaks the main design rule.
+- ~~**OQ-2 Low confidence.**~~ **Decided:** below 0.6 confidence, the email goes to `needs_human_triage`. Original question: Should a low-confidence email go to `needs_human_triage` (my recommendation) or be forced into one of the six types? If routing, what threshold?
 - ~~**OQ-3 Multi-intent emails.**~~ **Decided:** one primary type plus flags. A client sending attachments always has them logged, and an advice flag always produces a briefing note. Original question: For example, documents sent plus an advice question. Is "primary type + flags, and an advice flag always creates a briefing note" right?
 - ~~**OQ-4 Unknown sender asking for advice.**~~ **Decided:** reply offering the €120 partner consultation (as listed in the fee guide), and send a briefing note to a partner.
 - ~~**OQ-5 Demo lifetime.**~~ **Decided:** the demo stays live until 10 April 2027 (free-plan end), and resources are tagged `DeleteAfter = 2027-04-10`. The build itself still closes on 6 November 2026.
@@ -238,15 +251,22 @@ Real Gmail/Outlook integration, sending email, real client data, tax advice, AML
 
 ## v2 list
 
-- Real mailbox integration (Microsoft Graph or Gmail API) to read the shared inbox and forward triaged emails to personal mailboxes.
+- **Real mailbox integration** (Microsoft Graph or Gmail API): read the shared inbox, forward triaged emails to personal mailboxes, and actually send approved replies with the ticked attachments.
+- **Feedback loop:** approved or edited replies become new past replies, so future drafts reuse approved wording. Needs PII removal, and safeguards so a bad edit can't spread.
+- **Staff login (Amazon Cognito)** instead of a shared API key, so each person signs in and every decision is tied to a named user.
+- **Real file uploads,** so the documents step reads the files rather than their names.
+- **Multi-language** drafts and classification.
+- **Chunking test** (hierarchical or semantic) once the knowledge base grows. Not needed now: retrieval found the right source for every drafted reply.
+- **Shareability in metadata:** move the list of client-shareable documents from code into each document's metadata file.
 
-## Small improvements noted (not yet scheduled)
+## Small improvements (done 17 Oct)
 
-- Show checklist item names, not codes, in the front end (the API already provides them).
-- Reword the advice banner: "no tax advice is given; the client is offered a consultation or the accountant replies".
-- Match the sender's language level in drafts (simpler English for senders who write simply).
-- A template for company payroll quotes, because the model keeps combining prices (T06).
+- ~~Show checklist item names, not codes, in the front end.~~ Done.
+- ~~Reword the advice banner.~~ Done.
+- ~~Match the sender's language level in drafts.~~ Done (prompt rule 14).
+- ~~A template for company payroll quotes (T06).~~ Done more generally: prices are written by code for every quote (US-22).
+- Client card shows service names ("Form 11 tax return"), not codes. Done.
 
 ## Ideas raised, not decided
 
-- **Feedback loop:** approved or edited replies could be added to the knowledge base as new past replies, so future drafts reuse approved wording. This needs PII removal and safeguards so a bad edit can't spread.
+- None open. The feedback loop moved to the v2 list.

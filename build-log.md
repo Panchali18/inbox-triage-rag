@@ -313,9 +313,15 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **Secure front end live in preview:** the API key was rotated (`rotate_api_key.sh`, old key deleted) and stored as an encrypted server-side secret in Lovable. The app calls the API through the server proxy, so the key is no longer in browser code. Checklists now show document names, and the advice banner has the new wording.
 - **No search for documents emails:** testing Wojciech's documents email in the app showed a "Sources used" box with 5 passages, although the reply came from a template and the client's checklist. The pipeline now skips retrieval for documents emails, unless they also contain an advice question (then the briefing note needs the guidance).
 - **Drafts pointed at internal documents and judged the price:** Liam's quote said "As outlined in our fee guide…" and "this would be the relevant fee for your situation", promising €450 before anyone had seen his records. The prompt already banned judging which price applies; the model ignored it. Added prompt rules (speak as the firm, never mention internal material, open with "Hi <name>") and a rule-based **wording check** that flags internal references and price judgements in every AI-written draft (`wording_check`, flag `wording`).
+- **Prices written by code (US-22):** the model now picks which fee-guide rows answer the question (`PRICE_ROWS: P2, P10`), and code inserts those rows word for word, plus "All fees exclude VAT." The model never writes a euro amount. This replaces the planned payroll-quote template with a fix for every quote.
+- **Suggested attachments and links (US-21):** shareable sources that the draft actually cites are suggested. Firm documents (fee guide, FAQ, terms of engagement) appear as unticked attachments for the reviewer; Revenue pages are public, so they're added to the email as links. Past replies and the internal onboarding checklist are never suggested. The approval records which attachments were ticked.
+- **Smaller fixes:** a prompt rule to match the sender's language level; the client card shows service names ("Form 11 tax return") instead of codes; OQ-1 and OQ-2 marked decided; the v2 list completed.
 
 ### Decided
-- **Keep RAG.** It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
+- **Keep RAG.**
+- **The AI selects, code writes.** For anything that must be exact (prices, document names, checklists), the model chooses from a list and code produces the text. The model writes only the wording around it.
+- **Suggest, never attach.** The system suggests documents, but only a human decides what reaches a client. It matches the project's main rule: the AI drafts, and a person approves.
+- **Shareable documents are listed in code for now.** Moving the list into each document's metadata is cleaner, but it would mean re-syncing the knowledge base for no visible gain in the demo. It's on the v2 list. It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
 
 ### Learned
 - **More context isn't better context.** With every document in the prompt, the model gave T11's deadlines with the wrong year and turned T01's quote into advice-like wording. With only the relevant passages, it did neither.
@@ -323,6 +329,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **The safety layers are mode-independent.** The fact check and the guardrail caught the stuffing errors too, so neither design let an unchecked error reach a reviewer.
 - **T06 combined prices in both modes, with different totals.** More evidence that the payroll quote needs a template.
 - **A reply can be factually right and still wrong for a client.** Every fact in Liam's draft was in the fee guide, so the fact check passed it. Tone and commitments ("the relevant fee for you") need their own check.
+- **Not every source is shareable.** Past replies contain other clients' details, and the onboarding checklist describes the internal identity-check process. Retrieval doesn't care; the sharing rule has to.
 - **Show sources only where they were used.** A sources box beside a template reply suggests the reply was based on those passages. Showing evidence that wasn't used is misleading, even if it's harmless.
 
 ### Next session: resume checklist
