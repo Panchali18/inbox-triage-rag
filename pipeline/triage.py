@@ -460,6 +460,20 @@ def draft_reply(email, cls, client, passages, usage):
     return re.sub(r"\n{3,}", "\n\n", text).strip(), model_amounts
 
 
+def quote_steps_passage(n):
+    """The fee guide's "How quotes work" section, fetched with a metadata filter (like the consultation fee)."""
+    r = _agent.retrieve(
+        knowledgeBaseId=KB_ID, retrievalQuery={"text": "How quotes work: free 20-minute discovery call, written fixed-fee quote within 3 working days"},
+        retrievalConfiguration={"vectorSearchConfiguration": {
+            "numberOfResults": 3, "filter": {"equals": {"key": "document", "value": "services-and-fees"}}}})
+    for res in r["retrievalResults"]:
+        text = res["content"]["text"]
+        if "20 minute" in text.replace("-", " ") and "3 working days" in text:
+            return {"ref": f"S{n}", "source": "firm/services-and-fees.md", "score": round(res.get("score", 0), 4),
+                    "text": text, "url": None, "saved_on": None}
+    return None
+
+
 def consultation_offer(email, passages):
     """Template, not a model: the fee comes from the fee guide via a filtered KB search."""
     r = _agent.retrieve(
@@ -691,10 +705,20 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
     else:  # prospect / admin_question
         rec["draft"], model_amounts = draft_reply(email, cls, client, passages, usage)
         if t == "prospect" and rec["draft"] and "discovery call" not in rec["draft"].lower():
-            # Every prospect gets the next step, worded as in the fee guide ("How quotes work").
-            rec["draft"] = insert_before_sign_off(rec["draft"], "We offer a free 20-minute discovery call by phone or "
-                                                  "video. Within 3 working days of the call, we send a written "
-                                                  "fixed-fee quote.")
+            # Every prospect gets the next step, worded as in the fee guide ("How quotes work"). The passage is
+            # fetched from the knowledge base, so the fact check and the reviewer can see where it comes from.
+            how = quote_steps_passage(len(passages) + 1)
+            if how:
+                passages.append(how)
+                rec["retrieved"].append({**{k: how[k] for k in ("ref", "source", "score", "url")},
+                                         "snippet": how["text"][:400], **({"text": how["text"]} if dry_run else {})})
+                rec["draft"] = insert_before_sign_off(rec["draft"], f"We offer a free 20-minute discovery call by "
+                                                      f"phone or video. Within 3 working days of the call, we send a "
+                                                      f"written fixed-fee quote. [{how['ref']}]")
+            else:   # passage not found: still offer the next step; the fact check will show it as unsupported
+                rec["draft"] = insert_before_sign_off(rec["draft"], "We offer a free 20-minute discovery call by phone "
+                                                      "or video. Within 3 working days of the call, we send a written "
+                                                      "fixed-fee quote.")
         rec["status"], rec["action"] = "awaiting_review", "draft reply"
 
     rec["guardrail"] = None
