@@ -103,6 +103,8 @@ The same 40 emails, model and safety layers. Only the source text differs: the t
 
 RAG was more accurate and 2.4× cheaper. At 33 documents, pasting everything still works; RAG's advantage grows with the size of the knowledge base. Details: [`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md).
 
+**Latest evaluation (run 6, after the reply improvements):** no regressions, no combined prices for the first time, and every prospect reply offers the next step. See [`eval/run-6-better-replies.md`](eval/run-6-better-replies.md). RAGAS scores are being checked; see [`eval/ragas-run-1.md`](eval/ragas-run-1.md).
+
 Full results and what changed between runs: [`eval/`](eval/).
 
 ## Repository layout

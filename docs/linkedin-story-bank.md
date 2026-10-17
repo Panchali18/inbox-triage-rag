@@ -187,6 +187,13 @@ It never gives tax advice: advice questions go to an accountant.
 - **Lesson:** RAG screens show what the search returned, not what the answer relied on. Similarity scores rank passages; they're not percentages.
 - **Evidence:** `build-log.md` day 3, "Learned".
 
+## 20. "My AI judge gave a perfect score to a made-up date" (**finish after the RAGAS re-run**)
+- **What happened:** RAGAS, with an AI judge, scored one reply 1.00 for faithfulness, although our simple rule-based check had flagged an invented date in it. Meanwhile, a correct two-line admin reply scored 0.00, and every email got a perfect 1.00 for context relevance.
+- **Why:** the judge only saw the retrieved passages, not the client record the reply was written from. And a metric that scores everything 1.00 isn't telling you anything.
+- **Lesson:** sanity-check automated evaluation against cases where you already know the answer. An AI judge is a second opinion, not ground truth.
+- **Also in this story:** choosing the judge. Gemini's free tier allowed 20 requests a day (RAGAS needed about 70), and Claude was listed in the account but not available on the free plan. The judge ended up as Nova Pro, which keeps data in the EU and needs no extra key.
+- **Evidence:** `eval/ragas-run-1.md`, `build-log.md` day 3.
+
 ---
 
 ## Numbers you can quote (all synthetic, run 5 unless stated)
@@ -204,6 +211,7 @@ It never gives tax advice: advice questions go to an accountant.
 | Cost per email | about $0.0013 |
 | Median time per email | about 3–4 seconds |
 | Evaluation runs | 5, each change measured and documented |
+| Evaluation run 6 | No regressions; 0 combined prices (T06 flagged in every earlier run); 6/6 prospect replies offer the next step |
 | RAG vs everything in the prompt | 97% vs 89% of facts grounded; 4× fewer input tokens; 2.4× cheaper; same speed (2.6 s) |
 | Knowledge base | 4 firm documents, 20 past replies, 9 Revenue pages (CC BY 4.0) |
 

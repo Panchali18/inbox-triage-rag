@@ -20,7 +20,8 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 | 3 | Evaluation | ✅ Runs 1–5 done (15 Oct) |
 | 3 | RAG vs prompt-stuffing comparison | ✅ Done (17 Oct): RAG 97% grounded vs 89%, 2.4× cheaper (`eval/rag-vs-stuffing.md`) |
 | 3 | Secure front end (key server-side), suggested attachments, prices by code (US-21, US-22) | ✅ Done (17 Oct). Publishing pending. |
-| 3 | Evaluation run 6 and RAGAS scores | ⏳ Next |
+| 3 | Evaluation run 6 | ✅ Done (17 Oct): no regressions, no combined prices |
+| 3 | RAGAS scores (US-15, AC4) | 🔄 First run done (17 Oct); results inconsistent, re-run with full context |
 | 3 | Final README, recording, LinkedIn post | ⏳ Not started (story bank ready in `docs/`) |
 
 ## Personas

@@ -302,7 +302,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 ---
 
-## Day 3: Saturday 17 October 2026: RAG comparison, secure front end, better replies
+## Day 3: Saturday 17 October 2026: RAG comparison, secure front end, better replies, evaluation
 
 ### Done
 **1. RAG vs prompt-stuffing (US-16).** Ran the evaluation twice on the same 40 emails: the top 5 retrieved passages, then all 33 documents in the prompt ([`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md)).
@@ -324,6 +324,10 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 **7. Every prospect gets the next step.** If a prospect draft doesn't mention the discovery call, code adds the fee guide's wording before the sign-off.
 
 **8. Smaller items.** The client card shows service names ("Form 11 tax return") instead of codes. OQ-1 and OQ-2 marked decided. The v2 list completed.
+
+**9. Evaluation run 6** ([`eval/run-6-better-replies.md`](eval/run-6-better-replies.md)): no regressions. Routing, urgent items, advice detection, lookup, checklists and injection all at 100%; 0 advice answered to a client. **No combined prices for the first time** (T06 was flagged in every earlier run). 6/6 prospect replies offer the discovery call. Suggestions on 8 drafts, including the Revenue link on T11. Two wording warnings (T07, T11) and T11's invented date flagged. About $0.0013 per email, median 3.2 seconds.
+
+**10. RAGAS, first run** ([`eval/ragas-run-1.md`](eval/ragas-run-1.md)), judged by Amazon Nova Pro: faithfulness 0.71 on average, context relevance 1.00 for every email. The scores don't match what we know: T11 scored 1.00 despite an invented date, while simple admin replies scored 0.00 (T14) and 0.20 (T13). The likely cause is that the judge saw only the retrieved passages, not the client record or the sender's email that the drafting model also used. To be re-run with the full context before anyone quotes the numbers.
 
 **Final checks (T01, T06, T11):**
 - **T01 (Liam) and T06 (Tom):** prices once, word for word, no totals, no "fee guide" wording, the discovery call included. The fee guide is suggested as an attachment, and "View" opens the PDF.
@@ -353,6 +357,8 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 | Proposed "Sources found / Used" labels on screen | Not needed for the demo | Dropped, and added to the v2 list as an idea |
 
 ### Decided
+- **RAGAS judge: Nova Pro on Bedrock.** Gemini's free tier was too limited, and Claude isn't available on this free-plan account (see the table above).
+- **Don't publish RAGAS numbers until they're checked against the drafts.** The first run contradicted the rule-based fact check on T11.
 - **Keep RAG.** It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
 - **The AI selects, code writes.** For anything that must be exact (prices, document names, checklists), the model chooses from a list and code produces the text. The model writes only the wording around it.
 - **Suggest, never attach.** The system suggests documents, but only a person decides what reaches a client.
@@ -372,13 +378,14 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **The judge should be a different, stronger model than the one being judged.** The plan was Claude Sonnet 5.5 judging Nova 2 Lite's drafts, but Claude isn't available on this free-plan account. Nova Pro is larger than Nova 2 Lite but from the same family, so a shared blind spot is possible. Treat the scores as a second opinion alongside the rule-based fact check, not as proof.
 - **"Listed" isn't "available".** A model appearing in the inference-profile list doesn't mean the account can call it. Test one call before building on it.
 - **Long jobs need checkpoints.** A browser shell can time out at any moment; saving after each item turned a lost run into a resumable one.
+- **An AI judge only knows what you show it.** RAGAS judged the replies against the retrieved passages only, but the drafting model also had the client record and the sender's email. Correct facts from the client record ("your accountant is Ciarán") looked unsupported, so simple admin replies scored 0.00.
+- **Automated scores need a sanity check against known cases.** T11 has a known invented date and still scored 1.00; context relevance was 1.00 for everything. A metric that gives the same score to every case, or misses a known error, isn't measuring what you think.
 - **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
 
 ### Next session: resume checklist
-1. **Evaluation run 6** on the latest pipeline, to confirm today's changes didn't break anything: `GUARDRAIL_ID=$GID python3 scripts/run_eval.py`, then record it in `eval/`.
-2. **RAGAS scores** (US-15, AC4): faithfulness and context relevance on the drafted replies.
-3. **Publish** the secure Lovable app and add its link to the README.
-4. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
-5. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
+1. **RAGAS, second run:** give the judge the client record and the sender's email too, then read the claims behind the lowest scores.
+2. **Publish** the secure Lovable app and add its link to the README.
+3. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
+4. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
 
 Close date: Friday 6 November 2026.
