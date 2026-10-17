@@ -741,7 +741,7 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
         rec["wording_check"] += [{"issue": "price written by the model", "text": a} for a in model_amounts]
     if rec["wording_check"]:
         flags.append("wording")
-    used_facts = [f for f in (rec["fact_check"] or {}).get("supported", []) if re.search(r"\d{4}|€\s?\d", f)]
+    used_facts = [f for f in (rec["fact_check"] or {}).get("supported", []) if re.search(rf"\d{{4}}|€\s?\d|\d\s+(?:{MONTHS})", f, re.I)]   # years, amounts, day-month dates
     rec["suggested_attachments"] = (suggestions(rec["draft"], passages, used_facts)
                                     if rec["draft"] and not is_template else [])
     links = [s for s in rec["suggested_attachments"] if s["kind"] == "link"]
