@@ -431,8 +431,11 @@ def draft_reply(email, cls, client, passages, usage):
     if chosen:
         price_part = ("\n\nPRICES: these lines will be inserted automatically straight after your first paragraph:\n" +
                       "\n".join(f"- {r['service']}: {r['fee']}" for r in chosen) +
-                      "\nEnd your first paragraph with a short lead-in such as \"Here are our prices:\". Do NOT repeat, "
-                      "restate or calculate any price, and write no euro amounts anywhere in your reply.")
+                      "\nYour first paragraph: thank them and say in one sentence what they asked about, with NO prices "
+                      "or amounts. Bad: \"Our Form 11 return starts from €450 when records are organised.\" Good: "
+                      "\"Thanks for getting in touch about your tax return.\" Don't write a lead-in such as \"Here are "
+                      "our prices\"; the system adds it. Do NOT repeat, restate or calculate any price, and write no euro "
+                      "amounts anywhere in your reply.")
     elif rows:
         price_part = "\n\nWrite no euro amounts in your reply."
     user = (f"{wrap_email(email)}\n\n{client_block(client)}\n\n"
@@ -440,11 +443,16 @@ def draft_reply(email, cls, client, passages, usage):
             f"{price_part}")
     text = ask(DRAFT_SYSTEM, user, usage, max_tokens=700)
     text = re.sub(r"\{\{PRICES\}\}|^\s*PRICE_ROWS:.*$", "", text, flags=re.M | re.I)   # leftovers, if any
-    sender_text = re.sub(r"[\s,]", "", f"{email.get('subject', '')} {email.get('body', '')}".lower())
+    sender_text = f"{email.get('subject', '')} {email.get('body', '')}".lower()
+    sender_text = re.sub(r"€\s?(\d+)k\b", lambda m: f"€{int(m.group(1)) * 1000}", sender_text)   # "€600k" -> "€600000"
+    sender_text = re.sub(r"[\s,]", "", sender_text)
     model_amounts = sorted(a for a in set(FACT_PATTERNS[0].findall(text))
                            if re.sub(r"[\s,]", "", a.lower()) not in sender_text)   # the sender's own figures are fine
     if chosen:
-        block = "\n".join(f"- {r['service']}: {r['fee']} [{r['ref']}]" for r in chosen)
+        # The model's own lead-in, if it wrote one anyway, is removed; code writes it next to the rows.
+        text = re.sub(r"^[ \t]*(?:here are|these are|please find|below are)[^\n]{0,40}(?:prices|fees|rates)[^\n]{0,30}:[ \t]*$",
+                      "", text, flags=re.I | re.M)
+        block = "Here are our prices:\n" + "\n".join(f"- {r['service']}: {r['fee']} [{r['ref']}]" for r in chosen)
         if any("€" in r["fee"] for r in chosen):
             block += "\n\nAll fees exclude VAT."
         text = insert_after_first_paragraph(text, block)
