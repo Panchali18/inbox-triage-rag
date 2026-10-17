@@ -329,6 +329,10 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 **10. RAGAS, first run** ([`eval/ragas-run-1.md`](eval/ragas-run-1.md)), judged by Amazon Nova Pro: faithfulness 0.71 on average, context relevance 1.00 for every email. The scores don't match what we know: T11 scored 1.00 despite an invented date, while simple admin replies scored 0.00 (T14) and 0.20 (T13). The likely cause is that the judge saw only the retrieved passages, not the client record or the sender's email that the drafting model also used. To be re-run with the full context before anyone quotes the numbers.
 
+**11. Safe standard reply when a prospect's draft is blocked.** Mateus (T05) is blocked by the guardrail in every run, because the model tells him "you will need to register for Income Tax". The block was right, but it left Sinéad with nothing to send to a prospect who asked for a price. Now, when a prospect's AI draft is blocked, the reviewer gets a standard reply built only from fixed wording, the code-inserted prices and the fee guide's next step, with an amber note: "The AI draft was blocked as tax advice, so the standard reply is shown". The blocked draft stays in the audit record.
+
+**12. RAGAS judge sees the full context.** The judge now also gets the client record, the firm's name and signatory, and the sender's email, which the drafting model had too. The report lists the drafts that score below 0.80, so they can be read.
+
 **Final checks (T01, T06, T11):**
 - **T01 (Liam) and T06 (Tom):** prices once, word for word, no totals, no "fee guide" wording, the discovery call included. The fee guide is suggested as an attachment, and "View" opens the PDF.
 - **T11 (Ana):** the Revenue link is added. The model still invents "18 November 2026" for online filing and writes "your 2025 tax return"; both are flagged for the reviewer (unsupported fact, wording).
@@ -363,6 +367,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **The AI selects, code writes.** For anything that must be exact (prices, document names, checklists), the model chooses from a list and code produces the text. The model writes only the wording around it.
 - **Suggest, never attach.** The system suggests documents, but only a person decides what reaches a client.
 - **Shareable documents are listed in code for now** (see the table above).
+- **A block shouldn't leave the reviewer empty-handed.** For prospects, a blocked AI draft is replaced by a safe standard reply (fixed wording, code-inserted prices, next step), marked clearly for the reviewer.
 - **Warn, don't block, on wording.** A wording warning doesn't stop approval: the reviewer edits or accepts. Unsupported facts still need an override to approve.
 
 ### Learned
@@ -376,6 +381,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **"Sources used" usually means "sources found".** A RAG screen shows what the search returned, not what the answer relied on. In Tom's quote, 4 passages were listed; 1 supplied the facts, 1 the tone, and 2 weren't used. The similarity score (0 to 1) ranks passages; it isn't a percentage, and the most useful source isn't always first.
 - **Free tiers are for trying, not for evaluation.** Gemini's free tier allowed 20 requests per model per day, and RAGAS needs several judge calls per email. Check the rate limits of a judge model against the number of calls before choosing it. Here, the judge already available in the same cloud (Bedrock) was cheaper in time, simpler (no extra key) and better for data residency.
 - **The judge should be a different, stronger model than the one being judged.** The plan was Claude Sonnet 5.5 judging Nova 2 Lite's drafts, but Claude isn't available on this free-plan account. Nova Pro is larger than Nova 2 Lite but from the same family, so a shared blind spot is possible. Treat the scores as a second opinion alongside the rule-based fact check, not as proof.
+- **Safe isn't the same as helpful.** The guardrail correctly blocked advice to Mateus, but the outcome was no reply at all to a prospect asking for a price. A safety layer needs a fallback that still serves the user.
 - **"Listed" isn't "available".** A model appearing in the inference-profile list doesn't mean the account can call it. Test one call before building on it.
 - **Long jobs need checkpoints.** A browser shell can time out at any moment; saving after each item turned a lost run into a resumable one.
 - **An AI judge only knows what you show it.** RAGAS judged the replies against the retrieved passages only, but the drafting model also had the client record and the sender's email. Correct facts from the client record ("your accountant is Ciarán") looked unsupported, so simple admin replies scored 0.00.
@@ -383,7 +389,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
 
 ### Next session: resume checklist
-1. **RAGAS, second run:** give the judge the client record and the sender's email too, then read the claims behind the lowest scores.
+1. **RAGAS, second run** (the judge now sees the full context), then read the drafts behind the lowest scores.
 2. **Publish** the secure Lovable app and add its link to the README.
 3. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
 4. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.

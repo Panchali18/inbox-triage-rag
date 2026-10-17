@@ -45,6 +45,7 @@ def judge_llm():
     return ChatBedrockConverse(model=JUDGE, region_name=REGION, temperature=0, max_tokens=4000)
 
 results = json.loads((ROOT / "eval/results/latest.json").read_text(encoding="utf-8"))
+drafts = {x["id"]: x["result"].get("draft") for x in results}
 rows = []
 for x in results:
     r = x["result"]
@@ -53,8 +54,16 @@ for x in results:
     contexts = [p.get("text") for p in r.get("retrieved") or [] if p.get("text")]
     if not contexts:
         sys.exit("latest.json has no full passages. Re-run scripts/run_eval.py with the current code first.")
+    # The drafting model also saw the client record and the sender's email, so the judge gets them too.
+    # Without them, correct facts such as "your accountant is Ciarán" look unsupported (first run, T13 and T14).
+    c = r.get("client")
+    record = ("Client record: " + json.dumps({k: c.get(k) for k in ("name", "client_type", "business_name",
+              "services", "assigned_accountant", "partner", "onboarding_status", "outstanding")}, ensure_ascii=False)
+              if c else "The sender is not in the client table (unknown sender / prospect).")
+    firm = "Firm: Nore Valley Accountants, Kilkenny. Practice manager: Sinéad Kehoe (signs replies)."
+    sender = f"The sender's email. From: {r.get('from_name')}. Subject: {r.get('subject')}. {r.get('body')}"
     rows.append({"id": x["id"], "user_input": f"Subject: {r.get('subject')}\n\n{r.get('body')}",
-                 "response": r["draft"], "retrieved_contexts": contexts})
+                 "response": r["draft"], "retrieved_contexts": contexts + [record, firm, sender]})
 
 PARTIAL = ROOT / "eval" / "results" / "ragas-partial.json"   # saved after every email, so a cut-off run can resume
 # Resume only scores from the same judge, and only complete ones (a failed call is scored again).
@@ -113,8 +122,14 @@ Drafts with faithfulness below 0.80: {", ".join(low) or "none"}.
 |---|---|---|
 {table}
 
+## Drafts with faithfulness below 0.80 (read these before drawing conclusions)
+
+{chr(10).join(f"### {i}{chr(10)}{chr(10)}```{chr(10)}{drafts.get(i)}{chr(10)}```{chr(10)}" for i in low) or "None."}
+
 ## How to read this
 
+- The judge sees the retrieved passages, the client record, the firm's name and signatory, and the sender's email:
+  everything the drafting model had.
 - RAGAS uses an AI judge, so the scores are estimates, and they can vary slightly between runs.
 - Faithfulness counts general statements too (for example "we can help with your return"). A claim with no source,
   even a harmless one, lowers the score. Read low-scoring drafts before drawing conclusions.

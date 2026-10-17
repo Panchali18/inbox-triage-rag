@@ -425,7 +425,7 @@ def insert_after_first_paragraph(text, block):
 
 
 def draft_reply(email, cls, client, passages, usage):
-    """Returns (draft, model_amounts). Prices are chosen by a small model call and written by code."""
+    """Returns (draft, model_amounts, chosen_rows). Prices are chosen by a small model call and written by code."""
     rows = price_list(passages)
     chosen = select_price_rows(email, rows, usage) if rows else []
     price_part = ""
@@ -457,7 +457,7 @@ def draft_reply(email, cls, client, passages, usage):
         if any("€" in r["fee"] for r in chosen):
             block += "\n\nAll fees exclude VAT."
         text = insert_after_first_paragraph(text, block)
-    return re.sub(r"\n{3,}", "\n\n", text).strip(), model_amounts
+    return re.sub(r"\n{3,}", "\n\n", text).strip(), model_amounts, chosen
 
 
 def quote_steps_passage(n):
@@ -472,6 +472,27 @@ def quote_steps_passage(n):
             return {"ref": f"S{n}", "source": "firm/services-and-fees.md", "score": round(res.get("score", 0), 4),
                     "text": text, "url": None, "saved_on": None}
     return None
+
+
+def safe_prospect_reply(email, price_rows, passages):
+    """Fallback when the guardrail blocks an AI draft for a prospect: fixed wording, prices and next step only.
+    Nothing here is written by a model, so there is nothing to block; the reviewer still gets a usable reply."""
+    first = (email.get("from_name") or "there").split()[0]
+    parts = [f"Hi {first},", "Thanks for getting in touch. We'd be happy to help."]
+    if price_rows:
+        block = "Here are our prices:\n" + "\n".join(f"- {r['service']}: {r['fee']} [{r['ref']}]" for r in price_rows)
+        if any("€" in r["fee"] for r in price_rows):
+            block += "\n\nAll fees exclude VAT."
+        parts.append(block)
+    how = quote_steps_passage(len(passages) + 1)
+    tag = ""
+    if how:
+        passages.append(how)
+        tag = f" [{how['ref']}]"
+    parts.append("We offer a free 20-minute discovery call by phone or video, where we can go through what you need. "
+                 f"Within 3 working days of the call, we send a written fixed-fee quote.{tag}")
+    parts.append("Kind regards,\n\nSinéad Kehoe\nPractice Manager, Nore Valley Accountants")
+    return "\n\n".join(parts)
 
 
 def consultation_offer(email, passages):
@@ -667,7 +688,7 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
                          **({"text": p["text"]} if dry_run else {})}
                         for p in passages]
     rec["draft"] = rec["briefing_note"] = rec["checklist"] = None
-    model_amounts = []
+    model_amounts, price_rows = [], []
     rec["fact_check"] = None
 
     if cls.get("injection_flag"):
@@ -703,7 +724,7 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
             rec["draft"] = consultation_offer(email, passages)
         rec["status"], rec["action"] = "for_accountant", "briefing note" + (" + consultation offer" if not client else "")
     else:  # prospect / admin_question
-        rec["draft"], model_amounts = draft_reply(email, cls, client, passages, usage)
+        rec["draft"], model_amounts, price_rows = draft_reply(email, cls, client, passages, usage)
         if t == "prospect" and rec["draft"] and "discovery call" not in rec["draft"].lower():
             # Every prospect gets the next step, worded as in the fee guide ("How quotes work"). The passage is
             # fetched from the knowledge base, so the fact check and the reviewer can see where it comes from.
@@ -730,6 +751,16 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
             rec["blocked_draft"] = rec["draft"]          # kept for audit, never shown as a draft
             rec["draft"], rec["status"] = None, "blocked_by_guardrail"
             flags.append("guardrail")
+            if t == "prospect":
+                # A prospect still needs an answer about prices and next steps: use the safe standard reply.
+                n_before = len(passages)
+                rec["draft"] = safe_prospect_reply(email, price_rows, passages)
+                for p in passages[n_before:]:
+                    rec["retrieved"].append({**{k: p[k] for k in ("ref", "source", "score", "url")},
+                                             "snippet": p["text"][:400], **({"text": p["text"]} if dry_run else {})})
+                rec["status"], rec["action"] = "awaiting_review", "safe standard reply (AI draft blocked)"
+                rec["fallback"] = "safe_standard_reply"
+                is_template = True
         elif reasons:                                    # PII masked, draft kept
             rec["draft"] = text
     if rec["draft"] and not rec["action"].startswith("documents logged"):
@@ -737,6 +768,9 @@ def process_email(email: dict, dry_run=True, mode="rag") -> dict:
         if rec["fact_check"]["unsupported"]:
             flags.append("unsupported_facts")
     rec["wording_check"] = wording_check(rec["draft"]) if rec["draft"] and not is_template else []
+    if rec.get("fallback"):   # shown to the reviewer in the amber notice above the draft
+        rec["wording_check"] = [{"issue": "safe standard reply",
+                                 "text": "The AI draft was blocked as tax advice, so the standard reply is shown"}]
     if rec["draft"] and model_amounts:
         rec["wording_check"] += [{"issue": "price written by the model", "text": a} for a in model_amounts]
     if rec["wording_check"]:

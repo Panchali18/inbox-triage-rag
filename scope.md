@@ -187,6 +187,12 @@ As a reviewer, I want the system to suggest documents and links the client may n
 - AC3: Revenue pages are public, so they are added to the email as links, and the reviewer can still edit them out.
 - AC4: Documents emails and template replies get no suggestions, because they use no sources.
 
+**US-23 Safe standard reply for blocked prospect drafts** *(added 17 Oct)*
+As the practice manager, I want a usable reply even when the AI draft is blocked, so that a prospect asking for a price still gets an answer quickly.
+- AC1: When the guardrail blocks a prospect's AI draft, the reviewer sees a standard reply: fixed greeting, the code-inserted prices, the discovery call and quote timing from the fee guide.
+- AC2: An amber note says the AI draft was blocked as tax advice. The blocked draft is kept for audit and never shown as a draft.
+- AC3: Advice questions from clients are unchanged: briefing note to the accountant, no client answer.
+
 **US-22 Prices written by code, not the model** *(added 17 Oct)*
 As the practice, I want every price in a draft copied exactly from the fee guide, so that no client is quoted an invented or combined figure.
 - AC1: The model chooses which fee rows answer the question. Code inserts those rows word for word, with "All fees exclude VAT."
