@@ -90,7 +90,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 
 ### RAG vs putting every document in the prompt
 
-The same 40 emails, model and safety layers. Only the source text differs: the top 5 retrieved passages, or all 33 documents (about 10,000 tokens).
+The same 40 emails, model and safety layers. Only the source text differs: the top 5 retrieved passages, or all 33 documents (39,190 characters of text).
 
 | Measure | RAG | All documents in the prompt |
 |---|---|---|

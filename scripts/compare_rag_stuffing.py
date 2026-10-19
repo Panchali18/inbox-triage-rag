@@ -81,7 +81,7 @@ out = f"""# RAG vs prompt-stuffing (US-16)
 
 The same 40 test emails, the same model (Nova 2 Lite, EU profile), and the same prompts, guardrail and fact check.
 - **RAG:** each draft or briefing note gets the top 5 passages retrieved from the Bedrock Knowledge Base (S3 Vectors).
-- **Prompt-stuffing:** each draft or briefing note gets all 33 knowledge-base documents (about 10,000 tokens) in the prompt.
+- **Prompt-stuffing:** each draft or briefing note gets all 33 knowledge-base documents (39,190 characters of text) in the prompt.
 
 {table}
 

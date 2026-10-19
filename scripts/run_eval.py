@@ -49,7 +49,7 @@ for e in emails:
     rr = r.get("classification", {})
     print(f"{e['id']}  expected {e['expected']['type']:<18} got {rr.get('type','ERROR'):<18} "
           f"{'OK' if rr.get('type') == e['expected']['type'] else '--'}")
-    time.sleep(1.5 if MODE == "rag" else 4)  # stay under the account's Bedrock quotas (stuffing sends ~10k tokens/call)
+    time.sleep(1.5 if MODE == "rag" else 4)  # stay under the account's Bedrock quotas (stuffing sends all 33 documents, 39,190 characters, in each drafting call)
 
 
 def pct(a, b):

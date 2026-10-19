@@ -4,7 +4,9 @@
 
 **The test:** the same 40 test emails, the same model (Nova 2 Lite, EU profile), and the same prompts, guardrail and fact check. Only the source text given to the model differs:
 - **RAG:** each draft or briefing note gets the top 5 passages retrieved from the Bedrock Knowledge Base (S3 Vectors).
-- **Prompt-stuffing:** each draft or briefing note gets all 33 knowledge-base documents (about 10,000 tokens) in the prompt.
+- **Prompt-stuffing:** each draft or briefing note gets all 33 knowledge-base documents (39,190 characters of text) in the prompt.
+
+**Note on token figures (corrected 19 Oct):** an earlier version of this page said the 33 documents were "about 10,000 tokens". That was an estimate from the text size (39,190 characters at roughly 4 characters per token), not a measurement. The measured figures are in the table below: **8,625 input tokens per email** with every document in the prompt, against **2,150 with RAG**. These are averages over all the emails that used sources, across every model call for each email, so they're not the size of a single prompt.
 
 Produced by `scripts/run_eval.py` (with and without `--stuffing`) and `scripts/compare_rag_stuffing.py`.
 

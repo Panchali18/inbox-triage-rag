@@ -142,7 +142,7 @@ It never gives tax advice: advice questions go to an accountant.
 - **Evidence:** `scope.md` US-18, `eval/run-3-routing.md`.
 
 ## 13. "RAG vs pasting everything into the prompt"
-- **What happened:** I ran the same 40 emails twice, with the same model and the same safety layers. One run gave the model the 5 most relevant passages (RAG). The other pasted in all 33 documents, about 10,000 tokens.
+- **What happened:** I ran the same 40 emails twice, with the same model and the same safety layers. One run gave the model the 5 most relevant passages (RAG). The other pasted in all 33 documents. Measured: 8,625 input tokens per email, against 2,150 with RAG.
 - **Results:**
   - Facts in drafts found in a source: **97% with RAG, 89% with everything in the prompt**.
   - With everything in the prompt, one reply gave two deadlines with the wrong year (2025 instead of 2026), and a plain quote drifted into wording the guardrail blocked as advice.
