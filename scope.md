@@ -2,7 +2,7 @@
 
 Fictional five-person accounting practice in Ireland. Demonstration only: synthetic data, nothing sent, no real clients.
 
-**Close date:** Friday 6 November 2026. Anything unfinished goes to the v2 list.
+Anything unfinished goes to the v2 list.
 
 ## Progress
 
@@ -15,14 +15,14 @@ Fictional five-person accounting practice in Ireland. Demonstration only: synthe
 | 1 | 40 synthetic test emails with expected results | ✅ Done (15 Oct) |
 | 2 | Lambda pipeline and API | ✅ Deployed (15 Oct) |
 | 2 | Lovable front end, first version (queue, detail, approve/edit/reject) | ✅ Built (15 Oct) |
-| 2 | Routing rules, mailbox views, review-screen redesign (US-18 to US-20) | ✅ Done (15 Oct). Secure Lovable version pending credits. |
+| 2 | Routing rules, mailbox views, review-screen redesign (US-18 to US-20) | ✅ Done (15 Oct). Secure version published (21 Oct). |
 | 2 | Bedrock Guardrail (denied topic, PII masking) | ✅ Done and tuned (15 Oct) |
 | 3 | Evaluation | ✅ Runs 1–5 done (15 Oct) |
 | 3 | RAG vs prompt-stuffing comparison | ✅ Done (17 Oct): RAG 97% grounded vs 89%, 2.4× cheaper (`eval/rag-vs-stuffing.md`) |
-| 3 | Secure front end (key server-side), suggested attachments, prices by code (US-21, US-22) | ✅ Done (17 Oct). Publishing pending. |
+| 3 | Secure front end (key server-side), suggested attachments, prices by code (US-21, US-22) | ✅ Done (17 Oct). Published (21 Oct). |
 | 3 | Evaluation runs 6 and 7 | ✅ Done (17 Oct): no regressions, no combined prices, every prospect gets a next step |
 | 3 | RAGAS scores (US-15, AC4) | ✅ Done (17 Oct): faithfulness 0.86, context relevance 1.00. Statement-by-statement check (21 Oct) found checker errors; see `eval/ragas-explain-21-oct.md` |
-| 3 | Final README, recording, LinkedIn post | ⏳ Not started (story bank ready in `docs/`) |
+| 3 | Final README, recording, LinkedIn posts | 🔄 Demo published and recording made; final README pass to do |
 
 ## Personas
 
@@ -249,7 +249,7 @@ As the builder, I want costs capped and resources tagged so that the project doe
 - ~~**OQ-2 Low confidence.**~~ **Decided:** below 0.6 confidence, the email goes to `needs_human_triage`. Original question: Should a low-confidence email go to `needs_human_triage` (my recommendation) or be forced into one of the six types? If routing, what threshold?
 - ~~**OQ-3 Multi-intent emails.**~~ **Decided:** one primary type plus flags. A client sending attachments always has them logged, and an advice flag always produces a briefing note. Original question: For example, documents sent plus an advice question. Is "primary type + flags, and an advice flag always creates a briefing note" right?
 - ~~**OQ-4 Unknown sender asking for advice.**~~ **Decided:** reply offering the €120 partner consultation (as listed in the fee guide), and send a briefing note to a partner.
-- ~~**OQ-5 Demo lifetime.**~~ **Decided:** the demo stays live until 10 April 2027 (free-plan end), and resources are tagged `DeleteAfter = 2027-04-10`. The build itself still closes on 6 November 2026.
+- ~~**OQ-5 Demo lifetime.**~~ **Decided:** the demo stays live until 10 April 2027 (free-plan end), and resources are tagged `DeleteAfter = 2027-04-10`.
 - ~~**OQ-6 Fact-check method.**~~ **Decided:** rule-based (extract € / % / dates / working days and match them against the sources; derivable sums are marked "calculated" for a human). Original question: Should the check be a second model call (simpler), or rule-based extraction of numbers and dates compared against sources (cheaper and more predictable)? Possibly both.
 - ~~**OQ-7 Past replies.**~~ **Decided:** 20 synthetic past replies (down from about 50).
 
@@ -268,6 +268,12 @@ Real Gmail/Outlook integration, sending email, real client data, tax advice, AML
 - **Sources found vs used:** label each passage on the review screen as used for facts, a tone example, or not used. A RAG screen otherwise shows what the search returned, not what the reply relied on.
 - **Minimum similarity score:** drop passages below a tested threshold, so obvious filler isn't passed to the model.
 - **Shareability in metadata:** move the list of client-shareable documents from code into each document's metadata file.
+
+## Found after publishing (21 Oct), not yet fixed
+
+- **Existing client given the prospect pitch:** Ioana's meeting request (T14) got discovery-call and fixed-fee wording. Left out of the demo showcase until investigated.
+- **Missing sender name:** the draft greets "Hi <first name>,". The form now requires a name; the pipeline should fall back to "Hello,".
+- **Promised times:** a draft promised a meeting "next week". Consider a prompt rule and a wording-check pattern.
 
 ## Small improvements (done 17 Oct)
 

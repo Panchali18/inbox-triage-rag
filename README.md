@@ -4,7 +4,9 @@
 
 An AI pipeline that triages the shared inbox of a small accounting practice. It classifies each email, looks up the sender, retrieves the relevant firm policy and Revenue guidance, and drafts a grounded reply for a human to approve. Advice questions always go to an accountant.
 
-> **Status: in progress.** Built and evaluated: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison. Remaining: publishing the front end and the recording. See [build-log.md](build-log.md) for progress, decisions and learnings.
+> **Try the demo:** https://nore-valley-inbox-triage.lovable.app
+>
+> **Status: in progress.** Built, evaluated and published: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison. See [build-log.md](build-log.md) for progress, decisions and learnings.
 
 ---
 
@@ -113,11 +115,11 @@ Full results and what changed between runs: [`eval/`](eval/).
 |---|---|
 | `scope.md` | User stories, acceptance criteria, assumptions and open questions |
 | `build-log.md` | Step-by-step log of decisions and learnings |
-| `docs/linkedin-story-bank.md` | Post-ready stories from the build, with evidence and numbers |
-| `eval/` | Evaluation reports for runs 1–5, and the RAG vs prompt-stuffing comparison |
+| `eval/` | Evaluation reports for runs 1–7, the RAG vs prompt-stuffing comparison and the RAGAS checks |
 | `pipeline/triage.py` | The triage pipeline (classify, look up, route, retrieve, act, fact check, guardrail) |
 | `lambda/handler.py` | API routes for the front end |
-| `frontend/` | Lovable prompts (v2 is current) |
+| `frontend/` | Lovable prompts and the changes made in Lovable |
+| `docs/client-documents/` | Client-facing PDFs suggested as attachments |
 | `data/kb/firm/` | 4 synthetic firm documents: fees, engagement terms, checklists, FAQ |
 | `data/kb/past-replies/` | 20 synthetic past replies |
 | `data/kb/revenue/` | 9 revenue.ie pages, saved as text with attribution |

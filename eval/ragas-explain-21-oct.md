@@ -20,7 +20,7 @@ Each email was checked twice, with the drafts from evaluation run 7. Checker: Am
 
 ## What the statements showed
 
-**T01:** all six ✗ in the documents-only check were about Liam's own email: "Liam is a self-employed plumber", "has been trading for 3 years", "maintains his records in a spreadsheet", "inquired about the cost", and the reply's framing ("Sinéad thanked Liam…"). With his email included, everything was supported. Every price and the discovery-call details were ✓ in both checks.
+**T01:** of the six ✗ in the documents-only check, four were facts from Liam's own email ("Liam is a self-employed plumber", "has been trading for 3 years", "maintains his records in a spreadsheet", "inquired about the cost") and two described the reply ("Sinéad responded to Liam's inquiry", "Sinéad thanked Liam…"). ~~With his email included, everything was supported.~~ Every price and the discovery-call details were ✓ in both checks. **(Corrected 21 Oct, later the same day:** an earlier version said "With his email included, everything was supported". Re-reading the screenshots showed that the full-context check split the reply into its own 9 lines, and none of the six statements marked ✗ in the first check appeared in it, so they were never checked against his email. Some ✓ reasons in that check were also untrue: "The context includes a reply to Liam Foley, starting with 'Hi Liam,'". No such reply was in the material; "Hi Liam" appears nowhere in the knowledge base or test data, and Liam's email starts "Hi,".)
 
 **T11:** the only ✗, in both checks, was "Revenue's guidance can be read here: https://www.revenue.ie/…". That link is added by our code from the page's web address, which isn't part of the page text. "If the tax return is filed through ROS, the deadline is extended to 18 November 2026" was ✓, quoting Revenue's page: "When you pay and file through the Revenue Online Service (ROS), the 31 October deadline is extended to 18 November."
 
@@ -30,11 +30,12 @@ Each email was checked twice, with the drafts from evaluation run 7. Checker: Am
 
 ## Findings
 
-1. **What the checker sees decides the score.** Liam's correct reply went from 0.54 to 1.00 when his own email was included.
-2. **The same reply is split differently from one call to the next.** Liam's reply became 13 statements in one call and 9 in the other; Ioana's became 6 and 7. Greetings and sign-offs were counted as statements in one call only. So the score can move even when nothing else changes.
+1. **The score changed, but this test can't say why.** Liam's reply scored 0.54 with documents only and 1.00 with full context. Two things changed between the checks: the material, and how the reply was split into statements (the six ✗ statements didn't appear in the second split). So the jump can't be credited to the added context. Giving the checker everything the drafting model had is still the right setup, because it can only confirm what it can see. (Corrected 21 Oct; an earlier version said "What the checker sees decides the score".)
+2. **The same reply is split differently from one call to the next.** Liam's reply became 13 statements in one call and 9 in the other; Ioana's became 6 and 7. Greetings and sign-offs were counted as statements in one call only. So the score can move even when nothing else changes. (Checked in the RAGAS 0.2.15 code: the statements are built from only the email and the reply, which were identical in both calls.)
 3. **A ✗ isn't always an error.** T11's only ✗ was a correct link. T14's ✗s include statements the FAQ supports, and pleasantries; only "next week" is a real gap.
+4. **A ✓ isn't always right either.** Some ✓ verdicts gave reasons quoting text that wasn't in the material (see T01).
 5. **The checker can miss evidence in front of it.** For T14 and T13, the FAQ answer was in the material, yet the replies scored 0.14 and 0.29.
-4. **Correction:** "18 November 2026" (T11) was described as an "invented date" in earlier reports. It isn't: Revenue's page gives "18 November" without a year, and the model added 2026 from the page's 2026 example. The rule-based fact check flags it because it requires the year, which is a fair caution. But a flag means "can't verify", not "invented".
+6. **Correction:** "18 November 2026" (T11) was described as an "invented date" in earlier reports. It isn't: Revenue's page gives "18 November" without a year, and the model added 2026 from the page's 2026 example. The rule-based fact check flags it because it requires the year, which is a fair caution. But a flag means "can't verify", not "invented".
 
 ## Limits
 Three emails, one checker model, one run each way. This shows how the score is built and how it can mislead; it doesn't measure how often.

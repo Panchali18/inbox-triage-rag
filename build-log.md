@@ -17,7 +17,7 @@ What I built at each step, the decisions I made and why, and what I learned alon
 | Client lookup | DynamoDB table, called as a tool | Structured facts (who is the client, what's outstanding) need exact lookups, not similarity search. DynamoDB also appears in AI job posts. | A JSON file in S3: simpler but less realistic |
 | Front-end access | API Gateway with an API key and throttling | Enough for a demo, with less setup | Cognito login: more realistic, but adds a week-2 dependency |
 | Budget | $5 a month alert on the whole account | FitProof costs about $1.30 a month, so $5 gives an early warning | $10: too late a warning on a $119 credit balance |
-| Demo lifetime | Live until 10 April 2027 | The LinkedIn post links to a working demo. Idle cost is close to zero. | Delete at the 6 November close date: the demo link would break days after posting |
+| Demo lifetime | Live until 10 April 2027 | The LinkedIn post links to a working demo. Idle cost is close to zero. | Delete when the build closes: the demo link would break days after posting |
 | Firm name | Nore Valley Accountants (fictional) | First idea, "Brennan & Kerr", was too close to a real firm (RBK) | |
 | Revenue content | 9 pages saved as text, with CC BY 4.0 attribution | Revenue's licence allows reuse with credit, but not its logos | Storing the PDFs: they contain the Revenue logo |
 | Expenses guidance | Left out | Only available in long technical manuals. Expense questions are advice, so they go to an accountant. | |
@@ -380,7 +380,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **Warn, don't block, on wording.** A wording warning doesn't stop approval: the reviewer edits or accepts. Unsupported facts still need an override to approve.
 
 ### Learned
-- **More context isn't better context.** With every document in the prompt, the model gave T11's deadlines with the wrong year and turned T01's quote into advice-like wording. With only the relevant passages, it did neither.
+- **More context isn't better context.** With every document in the prompt, the model gave T11's deadlines with the wrong year, and the guardrail blocked T01's quote. With only the relevant passages, neither happened. (Corrected 21 Oct: the T01 draft was never read, so "advice-like wording" was a guess.)
 - **At small scale, the difference is modest.** Prompt-stuffing still worked, cost a third of a cent and wasn't slower. The case for RAG here is accuracy and growth, not speed. Say so honestly rather than overselling it.
 - **The safety layers are mode-independent.** The fact check and the guardrail caught the stuffing errors too.
 - **A reply can be factually right and still wrong for a client.** Every fact in Liam's draft was in the fee guide, so the fact check passed it. Tone and commitments need their own check.
@@ -406,7 +406,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 | Email | Documents only | Full context | What the statements showed |
 |---|---|---|---|
-| T01 Liam (correct quote) | 7/13 = 0.54 | 9/9 = 1.00 | Every unsupported statement was a fact from Liam's own email (plumber, trading 3 years, spreadsheet). |
+| T01 Liam (correct quote) | 7/13 = 0.54 | 9/9 = 1.00 | 4 of the 6 unsupported statements were facts from Liam's own email (plumber, trading 3 years, spreadsheet, asked about cost); the other 2 described the reply ("Sinéad thanked Liam…"). The full-context check split the reply differently, into its own 9 lines, so the jump can't be credited to the added context. Some of its ✓ reasons quoted text that wasn't in the material. (Corrected 21 Oct.) |
 | T11 Ana (deadline) | 5/6 = 0.83 | 5/6 = 0.83 | The only unsupported statement was the Revenue web link, added by code from the page's address. "18 November 2026" was supported both times. |
 | T14 Ioana (meeting) | 0/6 = 0.00 | 1/7 = 0.14 | Almost everything marked unsupported, with reasons such as "It only includes Ioana's email". A follow-up check showed the FAQ answer on booking meetings ("contact Sinéad Kehoe, our practice manager") was among the retrieved passages, and the client record names Ciarán as her accountant. Only the "next week" commitment has no source. Pleasantries were also counted as unsupported. |
 
@@ -421,11 +421,35 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **Check the source before calling something made up.** A flag from the fact check means "can't verify", which isn't the same as "invented".
 - **The checker can miss evidence that's right in front of it.** Ioana's and Brian's replies follow the firm's FAQ, and the FAQ passages were in the checker's material (verified by printing the retrieved passages). It still scored them 0.14 and 0.29, and described its material as "only Ioana's email". I had reported both as replies that "made things up", and planned to add those processes to the FAQ, though they were already there.
 
-### Next session: resume checklist
-1. **Check in the app:** Mateus (T05) shows the safe standard reply with the amber note; Liam (T01) shows "a quick, free 20-minute call to confirm your quote".
-2. **T13/T14: no FAQ change needed** (the FAQ already covers bank-detail changes and booking meetings). Optional: a prompt rule against promising specific times ("next week").
-3. **Publish** the secure Lovable app and add its link to the README.
-4. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
-5. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.
+### Done (afternoon): published the demo
+- **Published the Lovable app:** https://nore-valley-inbox-triage.lovable.app
+- **Key check passed.** In a private browser window, the browser's developer tools showed no `x-api-key` header on the request that loads the inbox. The key stays on the server.
+- **Showcase setup for visitors** (all front-end changes; the API proxy and the key weren't touched; see [`frontend/lovable-changes-21-oct.md`](frontend/lovable-changes-21-oct.md)):
+  - visitors see a fixed list of 11 showcase emails, plus only the emails they submit themselves
+  - Approve, Edit and Reject on a showcase email change only that visitor's view, so the queue stays the same for everyone
+  - drafted replies come first in the queue, and Lovable was asked to open a drafted reply on load
+  - the sender name is required when submitting a new email
+  - bold text in internal notes shows as bold, without the `**` asterisks
+- **Ioana's email (T14) is left out of the showcase** (see "Found" below).
 
-Close date: Friday 6 November 2026.
+### Recorded late: the proxy fix (18 Oct)
+- The secure proxy failed in Lovable's preview because its requests used redirect mode "error". Lovable switched it to "manual", and the app worked. Not logged at the time.
+
+### Correction (afternoon)
+- **Liam's 0.54 → 1.00 can't be credited to the added context.** Re-reading the screenshots: in the full-context check, RAGAS split the reply into its own 9 lines, and none of the six statements marked ✗ in the first check appeared. Some ✓ reasons also quoted text that wasn't in the material ("a reply to Liam Foley, starting with 'Hi Liam,'"). Corrected in `eval/ragas-explain-21-oct.md`, `eval/ragas-run-2.md` and the table above.
+- **"Turned T01's quote into advice-like wording" (prompt-stuffing run) was never checked.** The blocked draft was never read. Corrected in `eval/rag-vs-stuffing.md` and Day 3's learnings.
+
+### Found
+- **Ioana's latest draft (made on 21 Oct) gave an existing client the prospect pitch:** a free discovery call, a fixed-fee quote and an engagement letter. It also promised a meeting "next week". Not yet investigated.
+- **A new email with no sender name produced "Hi <first name>,".** The name is now required in the form; the pipeline itself still uses a placeholder.
+
+### Learned (afternoon)
+- **Re-read the evidence before each public claim, including your own earlier conclusions.** The 0.54 → 1.00 reading had been checked as a number but not as a cause, and the screenshot that disproved it was already in hand.
+- **A shared demo needs a stable showcase.** With one shared inbox, the first visitors' clicks and test emails would change what everyone after them sees.
+
+### Next session: resume checklist
+1. **Investigate Ioana's draft:** why an existing client's meeting request got the prospect discovery-call wording.
+2. **Optional prompt rule** against promising specific times ("next week").
+3. **Pipeline:** when the sender's name is missing, greet with "Hello," instead of a placeholder.
+4. **Don't run `scripts/reset_demo.sh`** without updating the showcase list in Lovable: it would clear the showcase emails.
+5. Final README pass.

@@ -38,7 +38,7 @@ Prompt-stuffing sent **4.0× more input tokens** and cost **2.4× more** per ema
 
 ## What it means
 
-- **RAG was more accurate.** 97% of facts in RAG drafts were found in a source, against 89% with every document in the prompt. With more text to work from, the model drifted more: it gave T11's deadlines with the wrong year, a mistake RAG drafts no longer make since the run 5 fixes. It also turned T01's plain quote into wording the guardrail treated as advice.
+- **RAG was more accurate.** 97% of facts in RAG drafts were found in a source, against 89% with every document in the prompt. With more text to work from, the model drifted more: it gave T11's deadlines with the wrong year, a mistake RAG drafts no longer make since the run 5 fixes. The guardrail also blocked T01's quote as advice in this mode. (Corrected 21 Oct: an earlier version said the model "turned T01's plain quote into wording the guardrail treated as advice". The blocked draft was never read, so why it was blocked isn't known.)
 - **RAG was cheaper:** about 2.4× less per email.
 - **Speed was the same.** At 33 documents, the larger prompt didn't slow the model down noticeably.
 - **The safety layers worked in both modes.** The fact check flagged both wrong dates, and the guardrail blocked the advice drafts. No unchecked error would have reached a reviewer.
