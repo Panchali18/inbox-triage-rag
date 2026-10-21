@@ -235,7 +235,7 @@ What I built at each step, the decisions I made and why, and what I learned alon
   - injection attempts and low-confidence emails go to Sinéad for manual triage
 
   This fixes a gap where everything went to the client's accountant, even invoice questions.
-- **Shared inbox to personal mailboxes:** every email lands in the shared inbox, and after triage it's routed to the assignee's mailbox. The demo simulates this with a mailbox selector. Real forwarding is on the v2 list.
+- **Shared inbox to personal mailboxes:** every email lands in the shared inbox, and after triage it's routed to the assignee's mailbox. The demo simulates this with a mailbox selector. Real forwarding is listed as a possible future feature.
 - **Success measures:** correct categorisation and routing, timely turnaround (time from arrival to decision), and resolution (items reaching Done).
 
 ### Learned (review experience)

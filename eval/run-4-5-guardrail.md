@@ -49,4 +49,4 @@
 - **T05 is still blocked**, which is correct.
 - **T15 is still blocked.** It's accepted as a conservative over-block: Sinéad writes that one reply manually. For a tax practice, a missed piece of advice costs far more than an extra manual reply.
 - Two drafts blocked out of 22 (9%), both reviewed.
-- **T06 is still a calculated amount (€144):** the model keeps combining payroll prices despite the rule. It's flagged amber for the reviewer every time. It's a candidate for a template quote in v2.
+- **T06 is still a calculated amount (€144):** the model keeps combining payroll prices despite the rule. It's flagged amber for the reviewer every time. It's a candidate for a template quote. (Fixed in run 6: prices are now written by code.)
