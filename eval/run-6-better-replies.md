@@ -38,7 +38,7 @@ Same 40 synthetic test emails, model `eu.amazon.nova-2-lite-v1:0`, guardrail on.
 
 - **No regressions.** Routing, urgent items, advice detection, client lookup, checklists and injection all stayed at 100%, and no advice question was answered to a client.
 - **The price fix worked.** For the first time, no draft combined prices into a total. T06 was flagged in every earlier run.
-- **The new checks catch what the prompt doesn't.** The model still occasionally writes a price itself (T07) or addresses Revenue rules to the sender (T11), and it still invents T11's online-filing date. All three are flagged for the reviewer.
+- **The new checks catch what the prompt doesn't.** The model still occasionally writes a price itself (T07) or addresses Revenue rules to the sender (T11). Both are flagged for the reviewer. (Corrected 21 Oct: this line originally said the model "invents T11's online-filing date". It doesn't: Revenue's page says "extended to 18 November" without a year, and the test set's expected answer is "31 Oct 2026, extended to 18 Nov 2026 via ROS". The fact check flags it because the year isn't written next to the date in the source.)
 - **Retrieval hit rate (79%) isn't a decline.** Documents emails no longer search, so they dropped out of the count. Every miss is one of the six advice emails (T16–T22) that expected the engagement terms; those only get an internal briefing note.
 - **Cost and speed are unchanged,** even with the extra price-selection call.
 
