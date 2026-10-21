@@ -32,14 +32,14 @@
 
 1. **Prospect replies are fully grounded (1.00).** In the first run, they looked weak only because the judge couldn't see the sender's email or the firm's details. Every price, the discovery call and the quote timing trace back to the fee guide.
 2. ~~**T11 now scores 0.83, which matches what we know.** Its draft contains an invented online-filing date…~~ **Corrected 21 Oct:** the statement-by-statement test showed T11's only unsupported statement is the Revenue web link (added by code from the page's address), and the date is supported: Revenue's page says "extended to 18 November". See `eval/ragas-explain-21-oct.md`.
-3. **T13 and T14 are real findings, not judge errors.** Reading the drafts:
+3. ~~**T13 and T14 are real findings, not judge errors.**~~ **Corrected 21 Oct: they were mostly judge errors.** The firm's FAQ covers both (Q13: "Email us with the new details"; Q10: "contact Sinéad Kehoe, our practice manager" to book a meeting), and both FAQ passages were among the retrieved text the checker saw (verified by printing the retrieved passages). Only Ioana's "next week" commitment has no source. The original reading follows, for the record:
    - **T13 (Brian):** "Please send us the new account details so we can update our records." That's a reasonable answer, but no firm document describes this process, so the model invented the procedure.
    - **T14 (Ioana):** "I can arrange a meeting with your accountant, Ciarán Doyle, to go through your tax return next week… I will coordinate with Ciarán." Ciarán is correct (client record), but the promise of a meeting **next week** isn't backed by anything. The model committed the firm to availability it can't know.
 
    Our rule-based fact check can't catch these, because they contain no amounts or dates to check. This is exactly where an AI judge adds value.
 4. **Context relevance is still 1.00 everywhere,** so it doesn't distinguish good retrieval from bad here. Our own retrieval check (the right source found for 15/15 drafted replies) is more informative.
 
-## What to do about T13 and T14 (not done yet)
+## What to do about T13 and T14 (superseded 21 Oct: the FAQ already covers both, so no knowledge-base change is needed)
 
 - **Fill the knowledge gap:** add the firm's real process for bank-detail changes and appointment booking to the FAQ, so the model has a source to follow.
 - **Prompt rule:** don't promise times, availability or processes that aren't in the sources; say a member of the team will confirm.

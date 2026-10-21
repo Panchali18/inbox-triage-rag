@@ -336,7 +336,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 **13. RAGAS, second run** ([`eval/ragas-run-2.md`](eval/ragas-run-2.md)). The judge now also gets the client record, the firm's name and signatory, and the sender's email, which the drafting model had too. Faithfulness rose from 0.71 to **0.86**:
 - Every prospect reply scored **1.00**.
 - **T11 dropped to 0.83.** I first read this as catching an invented date. Day 4's statement-by-statement test showed the only unsupported statement was the Revenue web link (added by code from the page's address), and the date was supported.
-- **T13 (0.29) and T14 (0.17) are real findings.** The model invented a process ("send us the new account details") and promised a meeting "next week". Our fact check can't see these, because there are no amounts or dates in them.
+- **T13 (0.29) and T14 (0.17).** ~~Real findings: the model invented a process and promised a meeting.~~ **Corrected 21 Oct:** both replies follow the firm's FAQ (Q13: email us the new bank details; Q10: book meetings through Sinéad), and those FAQ passages were among the retrieved text the checker was given. The low scores were the checker's error. The one unsupported part is Ioana's "next week" commitment.
 - T08 got no score (the judge's answer couldn't be read). Context relevance was still 1.00 everywhere.
 
 **14. Evaluation run 7** ([`eval/run-7-safe-reply.md`](eval/run-7-safe-reply.md)): Mateus (T05) now gets the safe standard reply, so all 7 prospects get a next step. Still no regressions: routing, urgent items, advice, lookup, checklists and injection at 100%; 0 combined prices; drafted replies found the right source 15/15. About $0.0013 per email, median 4.4 seconds.
@@ -370,8 +370,8 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 ### Decided
 - **RAGAS judge: Nova Pro on Bedrock.** Gemini's free tier was too limited, and Claude isn't available on this free-plan account (see the table above).
-- **Don't publish RAGAS numbers until they're checked against the drafts.** The first run contradicted the rule-based fact check on T11; the second run, with the full context, agrees with it.
-- **Keep both checks.** The rule-based fact check is exact for amounts and dates; the AI judge catches invented processes and promises. Neither covers everything.
+- **Don't publish RAGAS numbers until they're checked against the drafts, the sources and the expected answers.** (Corrected 21 Oct: the earlier version of this line said the second run "agrees with" the fact check on T11; both had flagged a correct date.)
+- **Keep both checks, and treat both as flags for a person to check.** The rule-based fact check is exact for amounts and dates, but it flags a correct date when the source omits the year. The AI checker can miss evidence that's in front of it (T13, T14). Neither covers everything.
 - **Keep RAG.** It was more accurate and cheaper on this test, and it's the only option that scales to a real firm's document volume.
 - **The AI selects, code writes.** For anything that must be exact (prices, document names, checklists), the model chooses from a list and code produces the text. The model writes only the wording around it.
 - **Suggest, never attach.** The system suggests documents, but only a person decides what reaches a client.
@@ -394,7 +394,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **"Listed" isn't "available".** A model appearing in the inference-profile list doesn't mean the account can call it. Test one call before building on it.
 - **Long jobs need checkpoints.** A browser shell can time out at any moment; saving after each item turned a lost run into a resumable one.
 - **An AI judge only knows what you show it.** RAGAS judged the replies against the retrieved passages only, but the drafting model also had the client record and the sender's email. Correct facts from the client record ("your accountant is Ciarán") looked unsupported, so simple admin replies scored 0.00.
-- **The AI judge earned its place on the second run.** With the full context, it agreed with the fact check on T11 and found something the fact check can't: replies that invent a process (T13) or promise a meeting "next week" (T14). Those are the gaps in the knowledge base to fill next.
+- ~~The AI judge earned its place on the second run: it found replies that invent a process (T13) or promise a meeting (T14).~~ **Corrected 21 Oct:** both replies follow the firm's FAQ, which was in the material the checker was given; the low scores were the checker missing it. There was no knowledge gap to fill.
 - **Automated scores need a sanity check against known cases, and so do my readings of them.** Context relevance was 1.00 for everything, so it measured nothing. And I read T11's score as missing an "invented date" without checking the source page, which did contain the date (day 4).
 - **Label every estimate as an estimate.** The results page described the 33 documents as "about 10,000 tokens", a figure worked out from the text size, not measured, and it was nearly quoted in a LinkedIn post as a result. Every public number should come from a test, or say plainly that it's an estimate and how it was worked out. (Corrected 19 Oct; the measured figure is 8,625 input tokens per email, against 2,150 with RAG.)
 - **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
@@ -408,7 +408,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 |---|---|---|---|
 | T01 Liam (correct quote) | 7/13 = 0.54 | 9/9 = 1.00 | Every unsupported statement was a fact from Liam's own email (plumber, trading 3 years, spreadsheet). |
 | T11 Ana (deadline) | 5/6 = 0.83 | 5/6 = 0.83 | The only unsupported statement was the Revenue web link, added by code from the page's address. "18 November 2026" was supported both times. |
-| T14 Ioana (meeting) | 0/6 = 0.00 | 1/7 = 0.14 | Genuinely unsupported promises ("arrange a meeting… next week", "coordinate with Ciarán"), plus pleasantries ("thanked Ioana", "kind regards") counted as unsupported. |
+| T14 Ioana (meeting) | 0/6 = 0.00 | 1/7 = 0.14 | Almost everything marked unsupported, with reasons such as "It only includes Ioana's email". A follow-up check showed the FAQ answer on booking meetings ("contact Sinéad Kehoe, our practice manager") was among the retrieved passages, and the client record names Ciarán as her accountant. Only the "next week" commitment has no source. Pleasantries were also counted as unsupported. |
 
 ### Correction
 - **"18 November 2026" was not invented.** Revenue's pay-and-file page says "the 31 October deadline is extended to 18 November", with no year; the model added 2026 from the page's 2026 example. The fact check flagged it because it requires the year, which is a fair caution. But I had described it as an "invented date" in the RAGAS reports, runs 6 and 7, the build log and a draft post, without checking the page. Corrected everywhere on 21 October.
@@ -419,10 +419,11 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **A ✗ isn't always an error.** Ana's only ✗ was a correct link; Ioana's mixed a real problem with pleasantries.
 - **Read the statements before quoting the score.** The score only made sense once the statement-by-statement verdicts were on screen.
 - **Check the source before calling something made up.** A flag from the fact check means "can't verify", which isn't the same as "invented".
+- **The checker can miss evidence that's right in front of it.** Ioana's and Brian's replies follow the firm's FAQ, and the FAQ passages were in the checker's material (verified by printing the retrieved passages). It still scored them 0.14 and 0.29, and described its material as "only Ioana's email". I had reported both as replies that "made things up", and planned to add those processes to the FAQ, though they were already there.
 
 ### Next session: resume checklist
 1. **Check in the app:** Mateus (T05) shows the safe standard reply with the amber note; Liam (T01) shows "a quick, free 20-minute call to confirm your quote".
-2. **Decide on T13/T14:** add the firm's process for bank-detail changes and appointments to the FAQ (then re-sync the knowledge base), plus a prompt rule against promising times or processes that aren't in the sources.
+2. **T13/T14: no FAQ change needed** (the FAQ already covers bank-detail changes and booking meetings). Optional: a prompt rule against promising specific times ("next week").
 3. **Publish** the secure Lovable app and add its link to the README.
 4. **Before recording:** `bash scripts/reset_demo.sh`, then submit a few examples (T23, T19, T08, T05, T31, T06).
 5. Final README pass, a 15–20 second screen recording, and the first LinkedIn post.

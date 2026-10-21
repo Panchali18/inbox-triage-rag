@@ -219,4 +219,4 @@ It never gives tax advice: advice questions go to an accountant.
 ## Wording reminders
 - Say "synthetic data" and "demonstration only" in every post.
 - Don't name Revenue as a partner or endorser. "Uses public Revenue.ie guidance under CC BY 4.0" is fine.
-- Don't call unfinished items done: the secure front end works in preview but isn't published yet, and the T13/T14 knowledge gaps are still open.
+- Don't call unfinished items done: the secure front end works in preview but isn't published yet, and RAGAS scores need reading statement by statement before quoting.

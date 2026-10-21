@@ -24,13 +24,16 @@ Each email was checked twice, with the drafts from evaluation run 7. Checker: Am
 
 **T11:** the only ✗, in both checks, was "Revenue's guidance can be read here: https://www.revenue.ie/…". That link is added by our code from the page's web address, which isn't part of the page text. "If the tax return is filed through ROS, the deadline is extended to 18 November 2026" was ✓, quoting Revenue's page: "When you pay and file through the Revenue Online Service (ROS), the 31 October deadline is extended to 18 November."
 
-**T14:** the promises are genuinely unsupported: "I can arrange a meeting with your accountant… next week" and "I will coordinate with Ciarán". No firm document describes booking meetings. But pleasantries were also counted as unsupported statements ("Sinéad Kehoe thanked Ioana", "sent kind regards"), which pushes the score down further.
+**T14:** almost every statement was marked unsupported, with reasons such as "It only includes Ioana's email". **A follow-up check (printing the retrieved passages) showed the firm's FAQ answer was in the material:** "10. How do I book a meeting? Reply to any email from us or contact Sinéad Kehoe, our practice manager." The full-context material also included the client record naming Ciarán Doyle as her accountant. So the reply's offer to arrange the meeting through the practice manager, with her accountant, is supported. Only "next week" has no source. Pleasantries ("Sinéad Kehoe thanked Ioana", "sent kind regards") were also counted as unsupported. (An earlier version of this page said "No firm document describes booking meetings". That was wrong.)
+
+**T13 (checked the same way):** Brian's reply ("Please send us the new account details so we can update our records") matches FAQ Q13 ("I've changed address or bank details. What do I do? Email us with the new details…"), which was among his retrieved passages. It scored 0.29 in the second RAGAS run.
 
 ## Findings
 
 1. **What the checker sees decides the score.** Liam's correct reply went from 0.54 to 1.00 when his own email was included.
 2. **The same reply is split differently from one call to the next.** Liam's reply became 13 statements in one call and 9 in the other; Ioana's became 6 and 7. Greetings and sign-offs were counted as statements in one call only. So the score can move even when nothing else changes.
-3. **A ✗ isn't always an error.** T11's only ✗ was a correct link; T14's mix a real problem with pleasantries.
+3. **A ✗ isn't always an error.** T11's only ✗ was a correct link. T14's ✗s include statements the FAQ supports, and pleasantries; only "next week" is a real gap.
+5. **The checker can miss evidence in front of it.** For T14 and T13, the FAQ answer was in the material, yet the replies scored 0.14 and 0.29.
 4. **Correction:** "18 November 2026" (T11) was described as an "invented date" in earlier reports. It isn't: Revenue's page gives "18 November" without a year, and the model added 2026 from the page's 2026 example. The rule-based fact check flags it because it requires the year, which is a fair caution. But a flag means "can't verify", not "invented".
 
 ## Limits
