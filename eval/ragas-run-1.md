@@ -31,7 +31,7 @@
 
 These scores don't line up with what we know from reading the drafts and the rule-based fact check, so they need checking before anyone quotes them.
 
-1. **T11 scored 1.00**, but its draft contains an invented date ("18 November 2026"), which our fact check flagged. The judge missed a made-up fact.
+1. ~~**T11 scored 1.00**, but its draft contains an invented date ("18 November 2026"), which our fact check flagged. The judge missed a made-up fact.~~ **Corrected 21 Oct:** the date is in Revenue's page ("extended to 18 November", without a year). The fact check flagged it because the year couldn't be verified. The judge's 1.00 was reasonable. See `eval/ragas-explain-21-oct.md`.
 2. **T14 scored 0.00 and T13 0.20.** Both are simple admin replies. The likely cause is that the judge was only given the retrieved passages, not the **client record**. A reply saying "your accountant, Ciarán Doyle, will be in touch" is correct, because it comes from the client record, but to the judge it looks unsupported.
 3. **The prospect replies (T01–T07) score lower** than the admin replies. Possible causes: the code-inserted discovery-call and price lines, friendly sentences ("thanks for getting in touch about your tax return") counted as claims, or the sender's own facts repeated back. We need to read the judge's claim-by-claim verdicts to know.
 4. **Context relevance is 1.00 for every email.** A perfect score everywhere usually means the metric isn't discriminating. The judge may be too lenient, or the metric's coarse scale (it rates on 0–2 and averages) saturates. Our own retrieval check is more informative: the right source was found for 15/15 drafted replies.

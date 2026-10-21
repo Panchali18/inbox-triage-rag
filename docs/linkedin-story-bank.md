@@ -188,13 +188,11 @@ It never gives tax advice: advice questions go to an accountant.
 - **Lesson:** RAG screens show what the search returned, not what the answer relied on. Similarity scores rank passages; they're not percentages.
 - **Evidence:** `build-log.md` day 3, "Learned".
 
-## 20. "My AI judge gave a perfect score to a made-up date"
-- **What happened:** RAGAS, with an AI judge, scored one reply 1.00 for faithfulness, although our simple rule-based check had flagged an invented date in it. Meanwhile, a correct two-line admin reply scored 0.00, and every email got a perfect 1.00 for context relevance.
-- **Why:** the judge only saw the retrieved passages, not the client record the reply was written from. And a metric that scores everything 1.00 isn't telling you anything.
-- **The re-run:** with the full context (the client record and the sender's email added), faithfulness went from 0.71 to 0.86. Every prospect reply scored 1.00, the made-up date was caught (0.83), and the judge found something my rule-based check can't: replies that invent a process or promise a meeting "next week".
-- **Lesson:** sanity-check automated evaluation against cases where you already know the answer. An AI judge is a second opinion, not ground truth, but with the right context it finds what rules miss.
-- **Also in this story:** choosing the judge. Gemini's free tier allowed 20 requests a day (RAGAS needed about 70), and Claude was listed in the account but not available on the free plan. The judge ended up as Nova Pro, which keeps data in the EU and needs no extra key.
-- **Evidence:** `eval/ragas-run-1.md`, `eval/ragas-run-2.md`, `build-log.md` day 3.
+## 20. "Read the statements, not the score" (corrected 21 Oct)
+- **What happened:** RAGAS faithfulness splits a reply into statements, checks each against the material it's given, and divides ✓ by the total. A statement-by-statement test showed: a correct quote scored 0.54 when the checker couldn't see the sender's email, and 1.00 when it could; the same reply was split into 13 statements in one call and 9 in another; and a ✗ was sometimes a correct web link or a "kind regards".
+- **Correction:** an earlier version of this story said the judge "gave a perfect score to a made-up date". The date was in Revenue's page (without a year), so that claim was wrong.
+- **Lesson:** an evaluation score is only as reliable as its setup, and the score only made sense once I read the statements behind it.
+- **Evidence:** `eval/ragas-explain-21-oct.md`, `eval/ragas-run-1.md`, `eval/ragas-run-2.md`, `build-log.md` day 4.
 
 ---
 
@@ -213,7 +211,7 @@ It never gives tax advice: advice questions go to an accountant.
 | Cost per email | about $0.0013 |
 | Median time per email | about 3–4 seconds |
 | Evaluation runs | 5, each change measured and documented |
-| RAGAS faithfulness (judge: Nova Pro) | 0.86 on average (first run 0.71, before the judge saw the full context); prospect replies 1.00 |
+| RAGAS faithfulness (judge: Nova Pro) | 0.86 on average (first run 0.71, before the judge saw the full context). Liam's quote: 0.54 with documents only, 1.00 with full context (21 Oct test) |
 | Evaluation run 6 | No regressions; 0 combined prices (T06 flagged in every earlier run); 6/6 prospect replies offer the next step |
 | RAG vs everything in the prompt | 97% vs 89% of facts grounded; 4× fewer input tokens; 2.4× cheaper; same speed (2.6 s) |
 | Knowledge base | 4 firm documents, 20 past replies, 9 Revenue pages (CC BY 4.0) |

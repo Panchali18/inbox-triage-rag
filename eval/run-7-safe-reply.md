@@ -38,4 +38,4 @@ Same 40 synthetic test emails, model `eu.amazon.nova-2-lite-v1:0`, guardrail on.
 - **No regressions** in routing, urgent items, advice, lookup, checklists or injection.
 - **Retrieval for drafted replies stays at 15/15.** The overall rate (75%) moves by one email between runs. All the misses are advice emails (T16–T22) that only get an internal briefing note.
 - **The median latency rose to 4.4 seconds,** probably because of the extra knowledge-base lookup for the fee guide's "How quotes work" section, and normal Bedrock variation. It's well under the 29-second API limit.
-- **The open items stay visible to the reviewer:** T10's model-written price, T11's invented date and its "your 2025 tax return" wording.
+- **The open items stay visible to the reviewer:** T10's model-written price, T11's "18 November 2026" (flagged because Revenue's page gives the date without a year; corrected 21 Oct, it isn't invented) and its "your 2025 tax return" wording.

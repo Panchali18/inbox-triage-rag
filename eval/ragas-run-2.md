@@ -31,7 +31,7 @@
 ## What the scores mean now
 
 1. **Prospect replies are fully grounded (1.00).** In the first run, they looked weak only because the judge couldn't see the sender's email or the firm's details. Every price, the discovery call and the quote timing trace back to the fee guide.
-2. **T11 now scores 0.83, which matches what we know.** Its draft contains an invented online-filing date ("18 November 2026"). In the first run, the judge missed it; with the full context, it caught it. The rule-based fact check also flags it, so the two methods now agree.
+2. ~~**T11 now scores 0.83, which matches what we know.** Its draft contains an invented online-filing date…~~ **Corrected 21 Oct:** the statement-by-statement test showed T11's only unsupported statement is the Revenue web link (added by code from the page's address), and the date is supported: Revenue's page says "extended to 18 November". See `eval/ragas-explain-21-oct.md`.
 3. **T13 and T14 are real findings, not judge errors.** Reading the drafts:
    - **T13 (Brian):** "Please send us the new account details so we can update our records." That's a reasonable answer, but no firm document describes this process, so the model invented the procedure.
    - **T14 (Ioana):** "I can arrange a meeting with your accountant, Ciarán Doyle, to go through your tax return next week… I will coordinate with Ciarán." Ciarán is correct (client record), but the promise of a meeting **next week** isn't backed by anything. The model committed the firm to availability it can't know.

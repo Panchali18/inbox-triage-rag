@@ -325,9 +325,9 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 **8. Smaller items.** The client card shows service names ("Form 11 tax return") instead of codes. OQ-1 and OQ-2 marked decided. The v2 list completed.
 
-**9. Evaluation run 6** ([`eval/run-6-better-replies.md`](eval/run-6-better-replies.md)): no regressions. Routing, urgent items, advice detection, lookup, checklists and injection all at 100%; 0 advice answered to a client. **No combined prices for the first time** (T06 was flagged in every earlier run). 6/6 prospect replies offer the discovery call. Suggestions on 8 drafts, including the Revenue link on T11. Two wording warnings (T07, T11) and T11's invented date flagged. About $0.0013 per email, median 3.2 seconds.
+**9. Evaluation run 6** ([`eval/run-6-better-replies.md`](eval/run-6-better-replies.md)): no regressions. Routing, urgent items, advice detection, lookup, checklists and injection all at 100%; 0 advice answered to a client. **No combined prices for the first time** (T06 was flagged in every earlier run). 6/6 prospect replies offer the discovery call. Suggestions on 8 drafts, including the Revenue link on T11. Two wording warnings (T07, T11), and T11's "18 November 2026" flagged by the fact check (later found to be in Revenue's page without the year; see day 4). About $0.0013 per email, median 3.2 seconds.
 
-**10. RAGAS, first run** ([`eval/ragas-run-1.md`](eval/ragas-run-1.md)), judged by Amazon Nova Pro: faithfulness 0.71 on average, context relevance 1.00 for every email. The scores don't match what we know: T11 scored 1.00 despite an invented date, while simple admin replies scored 0.00 (T14) and 0.20 (T13). The likely cause is that the judge saw only the retrieved passages, not the client record or the sender's email that the drafting model also used. Re-run with the full context in step 13.
+**10. RAGAS, first run** ([`eval/ragas-run-1.md`](eval/ragas-run-1.md)), judged by Amazon Nova Pro: faithfulness 0.71 on average, context relevance 1.00 for every email. Correct price quotes scored low (T01 0.38), and simple admin replies scored 0.00 (T14) and 0.20 (T13). (I first read T11's 1.00 as missing an "invented date"; day 4 showed the date is in Revenue's page, so that reading was wrong.) The likely cause is that the judge saw only the retrieved passages, not the client record or the sender's email that the drafting model also used. Re-run with the full context in step 13.
 
 **11. Safe standard reply when a prospect's draft is blocked.** Mateus (T05) is blocked by the guardrail in every run, because the model tells him "you will need to register for Income Tax". The block was right, but it left Sinéad with nothing to send to a prospect who asked for a price. Now, when a prospect's AI draft is blocked, the reviewer gets a standard reply built only from fixed wording, the code-inserted prices and the fee guide's next step, with an amber note: "The AI draft was blocked as tax advice, so the standard reply is shown". The blocked draft stays in the audit record.
 
@@ -335,7 +335,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 **13. RAGAS, second run** ([`eval/ragas-run-2.md`](eval/ragas-run-2.md)). The judge now also gets the client record, the firm's name and signatory, and the sender's email, which the drafting model had too. Faithfulness rose from 0.71 to **0.86**:
 - Every prospect reply scored **1.00**.
-- **T11 dropped to 0.83:** the judge now catches the invented online-filing date that our fact check also flags.
+- **T11 dropped to 0.83.** I first read this as catching an invented date. Day 4's statement-by-statement test showed the only unsupported statement was the Revenue web link (added by code from the page's address), and the date was supported.
 - **T13 (0.29) and T14 (0.17) are real findings.** The model invented a process ("send us the new account details") and promised a meeting "next week". Our fact check can't see these, because there are no amounts or dates in them.
 - T08 got no score (the judge's answer couldn't be read). Context relevance was still 1.00 everywhere.
 
@@ -343,7 +343,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 **Final checks (T01, T06, T11):**
 - **T01 (Liam) and T06 (Tom):** prices once, word for word, no totals, no "fee guide" wording, the discovery call included. The fee guide is suggested as an attachment, and "View" opens the PDF.
-- **T11 (Ana):** the Revenue link is added. The model still invents "18 November 2026" for online filing and writes "your 2025 tax return"; both are flagged for the reviewer (unsupported fact, wording).
+- **T11 (Ana):** the Revenue link is added. The fact check flags "18 November 2026" (Revenue's page says "18 November" without a year, so the year can't be verified), and the wording check flags "your 2025 tax return".
 
 ### Blocked and rerouted
 | What happened | Why | What we did instead |
@@ -395,9 +395,30 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 - **Long jobs need checkpoints.** A browser shell can time out at any moment; saving after each item turned a lost run into a resumable one.
 - **An AI judge only knows what you show it.** RAGAS judged the replies against the retrieved passages only, but the drafting model also had the client record and the sender's email. Correct facts from the client record ("your accountant is Ciarán") looked unsupported, so simple admin replies scored 0.00.
 - **The AI judge earned its place on the second run.** With the full context, it agreed with the fact check on T11 and found something the fact check can't: replies that invent a process (T13) or promise a meeting "next week" (T14). Those are the gaps in the knowledge base to fill next.
-- **Automated scores need a sanity check against known cases.** T11 has a known invented date and still scored 1.00; context relevance was 1.00 for everything. A metric that gives the same score to every case, or misses a known error, isn't measuring what you think.
+- **Automated scores need a sanity check against known cases, and so do my readings of them.** Context relevance was 1.00 for everything, so it measured nothing. And I read T11's score as missing an "invented date" without checking the source page, which did contain the date (day 4).
 - **Label every estimate as an estimate.** The results page described the 33 documents as "about 10,000 tokens", a figure worked out from the text size, not measured, and it was nearly quoted in a LinkedIn post as a result. Every public number should come from a test, or say plainly that it's an estimate and how it was worked out. (Corrected 19 Oct; the measured figure is 8,625 input tokens per email, against 2,150 with RAG.)
 - **Check where the code actually runs.** Two "fixes that didn't work" were the old code still deployed. Confirm the deploy (the commit in CloudShell, a fresh email) before debugging the logic.
+
+## Day 4: Wednesday 21 October 2026: faithfulness, statement by statement
+
+### Done
+- Added `scripts/ragas_explain.py`, which shows how the faithfulness score is worked out: RAGAS splits the reply into statements, checks each one against the material it's given, and divides the supported ones by the total. Ran it on T01, T11 and T14, with documents only and with full context ([`eval/ragas-explain-21-oct.md`](eval/ragas-explain-21-oct.md)).
+
+| Email | Documents only | Full context | What the statements showed |
+|---|---|---|---|
+| T01 Liam (correct quote) | 7/13 = 0.54 | 9/9 = 1.00 | Every unsupported statement was a fact from Liam's own email (plumber, trading 3 years, spreadsheet). |
+| T11 Ana (deadline) | 5/6 = 0.83 | 5/6 = 0.83 | The only unsupported statement was the Revenue web link, added by code from the page's address. "18 November 2026" was supported both times. |
+| T14 Ioana (meeting) | 0/6 = 0.00 | 1/7 = 0.14 | Genuinely unsupported promises ("arrange a meeting… next week", "coordinate with Ciarán"), plus pleasantries ("thanked Ioana", "kind regards") counted as unsupported. |
+
+### Correction
+- **"18 November 2026" was not invented.** Revenue's pay-and-file page says "the 31 October deadline is extended to 18 November", with no year; the model added 2026 from the page's 2026 example. The fact check flagged it because it requires the year, which is a fair caution. But I had described it as an "invented date" in the RAGAS reports, runs 6 and 7, the build log and a draft post, without checking the page. Corrected everywhere on 21 October.
+- The earlier wrong-year cases stand: run 4 (31 October **2025**) and the prompt-stuffing run (2025 dates) gave years that contradict Revenue's page.
+
+### Learned
+- **A faithfulness score is supported statements ÷ all statements. Both parts can mislead.** The same reply was split into 13 statements in one call and 9 in another; greetings and sign-offs were counted as facts in one and not the other.
+- **A ✗ isn't always an error.** Ana's only ✗ was a correct link; Ioana's mixed a real problem with pleasantries.
+- **Read the statements before quoting the score.** The score only made sense once the statement-by-statement verdicts were on screen.
+- **Check the source before calling something made up.** A flag from the fact check means "can't verify", which isn't the same as "invented".
 
 ### Next session: resume checklist
 1. **Check in the app:** Mateus (T05) shows the safe standard reply with the amber note; Liam (T01) shows "a quick, free 20-minute call to confirm your quote".
