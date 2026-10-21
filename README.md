@@ -6,7 +6,7 @@ An AI pipeline that triages the shared inbox of a small accounting practice. It 
 
 > **Try the demo:** https://nore-valley-inbox-triage.lovable.app
 >
-> **Status: in progress.** Built, evaluated and published: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison. See [build-log.md](build-log.md) for progress, decisions and learnings.
+> **Status: complete as a portfolio demo.** Built, evaluated and published: the knowledge base, pipeline, API, guardrail and front end, plus a RAG vs prompt-stuffing comparison and RAGAS checks. See [build-log.md](build-log.md) for decisions and learnings, and [scope.md](scope.md) for possible future features.
 
 ---
 
@@ -57,7 +57,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 | Vector store | Amazon S3 Vectors | ✅ |
 | Embeddings | Amazon Titan Text Embeddings V2 (1024 dimensions) | ✅ |
 | Document storage | Amazon S3 | ✅ |
-| Main model | Amazon Nova 2 Lite (EU cross-region inference profile) | ✅ Tested in the console |
+| Main model | Amazon Nova 2 Lite (EU cross-region inference profile) | ✅ |
 | Client lookup | Amazon DynamoDB (`inbox-triage-v1-clients`, 15 clients) | ✅ Loaded |
 | Pipeline | AWS Lambda (Python 3.12, arm64), `inbox-triage-v1-api` | ✅ Deployed |
 | API | Amazon API Gateway REST API with an API key and usage plan (2 req/s, 300/day) | ✅ Deployed |
@@ -75,7 +75,7 @@ Full user stories and acceptance criteria: [scope.md](scope.md).
 
 ---
 
-## Results so far (40 synthetic test emails, run 5)
+## Results (40 synthetic test emails, run 5)
 
 | Measure | Result |
 |---|---|
@@ -105,7 +105,7 @@ The same 40 emails, model and safety layers. Only the source text differs: the t
 
 RAG was more accurate and 2.4× cheaper. At 33 documents, pasting everything still works; RAG's advantage grows with the size of the knowledge base. Details: [`eval/rag-vs-stuffing.md`](eval/rag-vs-stuffing.md).
 
-**Latest evaluation (run 7, after the reply improvements):** no regressions, no combined prices, and every prospect reply offers a next step, including the one whose AI draft the guardrail blocked. See [`eval/run-7-safe-reply.md`](eval/run-7-safe-reply.md) and [`eval/run-6-better-replies.md`](eval/run-6-better-replies.md). **RAGAS** (AI judge: Amazon Nova Pro): faithfulness **0.86**, with every prospect reply at 1.00. Reading the statement-by-statement verdicts showed the checker also gets things wrong: it scored two correct admin replies very low, though the firm's FAQ answer was in its material. See [`eval/ragas-explain-21-oct.md`](eval/ragas-explain-21-oct.md).
+**Latest evaluation (run 7, after the reply improvements):** no regressions, no combined prices, and every prospect reply offers a next step, including the one whose AI draft the guardrail blocked. See [`eval/run-7-safe-reply.md`](eval/run-7-safe-reply.md) and [`eval/run-6-better-replies.md`](eval/run-6-better-replies.md). **RAGAS** (AI judge: Amazon Nova Pro): faithfulness **0.86**, with every prospect reply at 1.00. Reading the statement-by-statement verdicts showed the checker also gets things wrong: it scored two admin replies that follow the firm's FAQ very low, though the FAQ answer was in its material, and some "supported" verdicts quoted text that wasn't there. See [`eval/ragas-explain-21-oct.md`](eval/ragas-explain-21-oct.md).
 
 Full results and what changed between runs: [`eval/`](eval/).
 
@@ -175,8 +175,15 @@ This demo uses synthetic data only. A real practice would also need:
 | IAM role | `AmazonBedrockExecutionRoleForKnowledgeBase_vg70k` |
 | AWS Budget | `account-monthly-5usd` (account-wide, kept after clean-up) |
 
-## Limitations (so far)
+## Limitations
 
 - Synthetic data only. Real inbox email is messier.
 - The Revenue pages are a snapshot from 15 October 2026.
-- In retrieval tests, one Revenue question ranked the best page second rather than first. This will be measured properly in the week-3 evaluation.
+- The evaluation is one test set of 40 emails, mostly one run per change. Differences show a direction, not a statistically proven result.
+- RAGAS scores varied with how replies were split into statements, so they're read statement by statement rather than quoted alone.
+- Known issues: one meeting request from an existing client got prospect wording (discovery call, fixed-fee quote), and a draft can promise a time ("next week") the firm hasn't confirmed. A missing sender name gives a placeholder greeting; the demo form now requires a name.
+
+## About the public demo
+
+- Visitors see a fixed set of 11 showcase emails, plus any emails they submit themselves. Each visitor's own emails and approve, edit or reject decisions stay in their browser.
+- The API key is held on the server. The API allows 300 requests a day, so the demo may pause if that's used up.
