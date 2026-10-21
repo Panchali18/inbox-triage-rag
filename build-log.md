@@ -12,7 +12,7 @@ What I built at each step, the decisions I made and why, and what I learned alon
 | Vector store | Amazon S3 Vectors | Pay-per-use storage and queries, so it costs pennies at this scale | OpenSearch Serverless: a minimum always-on charge that would use up the free credits in weeks |
 | Embeddings | Titan Text Embeddings V2, float, 1024 dimensions | Available in Stockholm and supported by S3 Vectors. The default size gives the best accuracy. | Binary embeddings: cheaper storage, but less precise, and storage cost is already negligible |
 | Parsing | Bedrock default parser | Free, and enough for plain-text Markdown | Foundation-model parser: charges per page, and only needed for images and complex layouts |
-| Chunking | Default (about 300 tokens) | Most files are short, so they stay whole. The fee guide and terms split into a few chunks. | Hierarchical or semantic chunking: worth testing in v2 if retrieval scores are weak |
+| Chunking | Default (about 300 tokens) | Most files are short, so they stay whole. The fee guide and terms split into a few chunks. | Hierarchical or semantic chunking: a possible future feature if retrieval scores are weak |
 | Main model | Amazon Nova 2 Lite | Native in Stockholm, cheap and fast. Claude isn't in the Stockholm catalogue. | A small Claude model via EU cross-region inference: kept as a backup |
 | Client lookup | DynamoDB table, called as a tool | Structured facts (who is the client, what's outstanding) need exact lookups, not similarity search. DynamoDB also appears in AI job posts. | A JSON file in S3: simpler but less realistic |
 | Front-end access | API Gateway with an API key and throttling | Enough for a demo, with less setup | Cognito login: more realistic, but adds a week-2 dependency |
@@ -39,7 +39,7 @@ What I built at each step, the decisions I made and why, and what I learned alon
 ## Day 1: Wednesday 14 October 2026: scope and account checks
 
 ### Done
-- Wrote the v1 scope as 17 user stories with acceptance criteria, assumptions and open questions ([scope.md](scope.md)).
+- Wrote the scope as 17 user stories with acceptance criteria, assumptions and open questions ([scope.md](scope.md)).
 - Checked the account: free plan with $119.41 credits and 179 days left. Current spend is about $1.30 a month, mainly FitProof.
 - Created a monthly cost budget, `account-monthly-5usd`. It alerts at 85% and 100% of actual spend, and at 100% of forecast spend.
 - Tested Bedrock: Nova 2 Lite replied in the playground in 2.6 seconds, using 97 input and 415 output tokens.
@@ -323,7 +323,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 
 **7. Every prospect gets the next step.** If a prospect draft doesn't mention the discovery call, code adds the fee guide's wording before the sign-off.
 
-**8. Smaller items.** The client card shows service names ("Form 11 tax return") instead of codes. OQ-1 and OQ-2 marked decided. The v2 list completed.
+**8. Smaller items.** The client card shows service names ("Form 11 tax return") instead of codes. OQ-1 and OQ-2 marked decided. The list of possible future features completed.
 
 **9. Evaluation run 6** ([`eval/run-6-better-replies.md`](eval/run-6-better-replies.md)): no regressions. Routing, urgent items, advice detection, lookup, checklists and injection all at 100%; 0 advice answered to a client. **No combined prices for the first time** (T06 was flagged in every earlier run). 6/6 prospect replies offer the discovery call. Suggestions on 8 drafts, including the Revenue link on T11. Two wording warnings (T07, T11), and T11's "18 November 2026" flagged by the fact check (later found to be in Revenue's page without the year; see day 4). About $0.0013 per email, median 3.2 seconds.
 
@@ -358,7 +358,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 | Tom's own "€600k" was flagged as a price the model wrote | "k" wasn't read as thousands | The sender's own figures are normalised and ignored |
 | "View" opened the Markdown source on GitHub | The first link pointed at the knowledge-base file | Built branded client PDFs and pointed "View" at them |
 | "View" still opened the old page after the fix | That email was processed before the update; each email keeps the link it was given | Submitted a new email |
-| Planned a knowledge-base re-sync to mark shareable documents | It would cost a sync and a step for no visible gain | Kept the shareable list in code; moving it into metadata is on the v2 list |
+| Planned a knowledge-base re-sync to mark shareable documents | It would cost a sync and a step for no visible gain | Kept the shareable list in code; moving it into metadata is listed as a possible future feature |
 | Evaluation run 6 had T07 "unsupported" facts ("20-minute", "3 working days") | Code added the discovery-call sentence, but the fee guide wasn't among T07's retrieved passages, so the fact check couldn't find those facts | When code adds the sentence, it also fetches the fee guide's "How quotes work" section from the knowledge base, so the facts are backed and visible to the reviewer |
 | A loose fallback for Revenue links (link a Revenue page whenever a draft mentions Revenue) | Would add irrelevant links to prospect replies that just mention Revenue | Reverted. A source counts as used when the draft contains a date from it, even without the year |
 | RAGAS: the `read -s` key prompt didn't wait, and the key was pasted as a command and shown on screen | A fiddly way to enter a secret | The key was deleted and replaced. The script now asks for the key itself, hidden |
@@ -366,7 +366,7 @@ Work paused until the weekend. Everything is on GitHub. AWS resources stay runni
 | RAGAS: CloudShell signed out mid-run, and the installed packages were cleared | CloudShell sessions time out; results were only saved at the end | The script now saves after every email and resumes; packages are reinstalled in one line |
 | **RAGAS: Gemini's free tier hit its daily limit** (20 requests per model per day; retry in 10 hours) | RAGAS makes several judge calls per email (about 60–80 for 13 drafts) | **Switched the judge to Bedrock** (EU profile): no extra key, data stays in EU regions, under $1 of credits |
 | RAGAS: Claude Sonnet 5.5 returned AccessDeniedException, "not available for this account" | Claude models are listed in Stockholm but not enabled on this free-plan account | **Judge is Amazon Nova Pro** (EU profile), a larger model than the generator (Nova 2 Lite) but the same family. The script now stops at once if the judge returns no scores, instead of marking every email blank |
-| Proposed "Sources found / Used" labels on screen | Not needed for the demo | Dropped, and added to the v2 list as an idea |
+| Proposed "Sources found / Used" labels on screen | Not needed for the demo | Dropped, and listed as a possible future feature |
 
 ### Decided
 - **RAGAS judge: Nova Pro on Bedrock.** Gemini's free tier was too limited, and Claude isn't available on this free-plan account (see the table above).

@@ -7,7 +7,7 @@
 
 ## Results
 
-| Metric | Run 3 (no guardrail) | Run 4 (guardrail v1) | **Run 5 (tuned)** | Target |
+| Metric | Run 3 (no guardrail) | Run 4 (first guardrail) | **Run 5 (tuned)** | Target |
 |---|---|---|---|---|
 | Classification accuracy | 36/39 (92%) | 37/40 (92%) | **37/40 (92%)** | at least 90% |
 | Routing accuracy | 39/39 (100%) | 40/40 (100%) | **40/40 (100%)** | at least 90% |

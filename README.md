@@ -21,7 +21,7 @@ Nore Valley Accountants is a fictional five-person practice in Kilkenny, Ireland
 
 Urgent items get buried, prospects wait days, and staff answer the same admin questions again and again.
 
-## What it does (v1 design)
+## What it does
 
 1. **Classify** the email: prospect, admin question, advice question, documents sent, Revenue letter or penalty, or spam/supplier.
 2. **Extract** the sender, what they need, any dates, and the urgency.

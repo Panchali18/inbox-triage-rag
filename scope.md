@@ -1,8 +1,8 @@
-# Inbox Triage with RAG — v1 Scope
+# Inbox Triage with RAG — Scope
 
 Fictional five-person accounting practice in Ireland. Demonstration only: synthetic data, nothing sent, no real clients.
 
-Anything unfinished goes to the v2 list.
+Anything unfinished is listed under possible future features.
 
 ## Progress
 
@@ -56,7 +56,7 @@ Anything unfinished goes to the v2 list.
 As a triage reviewer, I want to submit a synthetic email (sender, subject, body, attachment file names) so that it enters the triage pipeline.
 - AC1: Front end form posts to the API and receives an email ID.
 - AC2: The email appears in the queue with status `Processing`, then a final status, without a page reload beyond a refresh button.
-- AC3: Attachments are represented by file names only; no files are uploaded in v1.
+- AC3: Attachments are represented by file names only; no files are uploaded in this version.
 
 ### Understand
 
@@ -172,7 +172,7 @@ As the practice, I want every email routed to the person who handles that kind o
 **US-19 Personal mailboxes**
 As a staff member, I want triaged emails to land in my own mailbox, so that the shared inbox stays clear and I only see my work.
 - AC1: The app has a mailbox selector: **Shared inbox** (everything), plus Sinéad, Ciarán, Niamh, Declan and Aoife, each showing only items assigned to them. There's no login, since it's a demo.
-- AC2: In v1, "sent to a personal mailbox" is simulated by the assignment. A real deployment would forward or move the email through the Microsoft Graph or Gmail API (out of scope for v1).
+- AC2: In this version, "sent to a personal mailbox" is simulated by the assignment. A real deployment would forward or move the email through the Microsoft Graph or Gmail API (out of scope for this version).
 
 **US-20 Client context**
 As a reviewer, I want to see who the sender is and our recent history with them, so that I can decide quickly without searching.
@@ -253,11 +253,11 @@ As the builder, I want costs capped and resources tagged so that the project doe
 - ~~**OQ-6 Fact-check method.**~~ **Decided:** rule-based (extract € / % / dates / working days and match them against the sources; derivable sums are marked "calculated" for a human). Original question: Should the check be a second model call (simpler), or rule-based extraction of numbers and dates compared against sources (cheaper and more predictable)? Possibly both.
 - ~~**OQ-7 Past replies.**~~ **Decided:** 20 synthetic past replies (down from about 50).
 
-## Out of scope (v1)
+## Out of scope
 
 Real Gmail/Outlook integration, sending email, real client data, tax advice, AML decisions, multi-language, agents beyond the fixed pipeline, real file uploads.
 
-## v2 list
+## Possible future features
 
 - **Real mailbox integration** (Microsoft Graph or Gmail API): read the shared inbox, forward triaged emails to personal mailboxes, and actually send approved replies with the ticked attachments.
 - **Feedback loop:** approved or edited replies become new past replies, so future drafts reuse approved wording. Needs PII removal, and safeguards so a bad edit can't spread.
@@ -285,4 +285,4 @@ Real Gmail/Outlook integration, sending email, real client data, tax advice, AML
 
 ## Ideas raised, not decided
 
-- None open. The feedback loop moved to the v2 list.
+- None open. The feedback loop is listed under possible future features.
